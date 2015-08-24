@@ -1,3 +1,4 @@
+/*
 var values = ["Alexandre Pare", "Martin Laporte", "Guillaume Simard", "Gregory Laporte", "Roxanne Fanny Corriveau", "Paul Pianta", "Magalie Allard", "Olivier Lamothe (Developers)", "Cédric Gagnon (Developers)", "Josianne Riopel", "Laurent Simoneau", "Olivier Lamothe", "Coveo Q&A", "Francis Turgeon-Boutin", "Martin Ouellet", "apare@coveo.com"];
 var key = ["from:", '@sysfrom='];
 
@@ -138,3 +139,4 @@ class MagicBoxCoveo extends MagicBox {
     return null;
   }
 }
+*/

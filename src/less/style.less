@@ -57,6 +57,34 @@ html {
       }
     }
   }
+  .magic-box-suggestions {
+    position: absolute;
+    top:100%;
+    left: -1px;
+    right: -1px;
+    margin-top: 1px;
+    border: 1px #ccc solid;
+    background: #fff;
+    border-top: none;
+    .magic-box-suggestion {
+      line-height: 20px;
+      padding: 2px;
+      font-size: 14px;
+      background: #fff;
+      .magic-box-selected {
+        background: #ddd;
+      }
+      &:hover {
+        background: #ddd !important;
+      }
+    }
+    &:hover {
+      .magic-box-suggestion.magic-box-selected {
+        background: #fff;
+      }
+    }
+    
+  }
 }
 .highlight(@color, @left, @right) {
   position: relative;
