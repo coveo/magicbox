@@ -147,7 +147,7 @@ module coveo {
         element.appendChild(document.createTextNode(result.value))
       } else {
         _.each(result.subResults, (subResult) => {
-          element.appendChild(Grammar.resultToElement(subResult));
+          element.appendChild(Grammar.resultToElement(subResult, ''));
         });
       }
       element['result'] = result;

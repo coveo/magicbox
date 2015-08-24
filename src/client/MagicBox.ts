@@ -13,21 +13,41 @@ module coveo {
   }
 
   export class MagicBox {
-    private input: JQuery;
-    private underlay: JQuery;
-    private suggestions: JQuery;
+    private input: HTMLInputElement;
+    private underlay: HTMLElement;
+    private highlightContainer: HTMLElement;
+    private ghostTextContainer: HTMLElement;
+    private suggestions: HTMLElement;
     private text: string;
     private hasFocus: boolean = false;
     private hasMouseOver: boolean = false;
     private grammarResult: GrammarResult;
 
-    private suggestionsCreators: MagicSuggestionsCreator[] = []
+    private suggestionsCreators: MagicSuggestionsCreator[] = [];
+    private pendingSuggestion: JQueryPromise<MagicSuggestion[]>;
 
-    constructor(public element: JQuery, public grammar: Grammar) {
-      element.addClass('magic-box');
-      this.underlay = $('<div class="magic-box-underlay" />').appendTo(element);
-      this.input = $('<input type="text" />').appendTo(element);
-      this.suggestions = $('<div class="magic-box-suggestions" />').appendTo(element);
+    constructor(public element: HTMLElement, public grammar: Grammar, private multiline = false) {
+      $(element).addClass('magic-box').toggleClass('magic-box-multiline', multiline);
+
+      this.underlay = document.createElement('div');
+      this.underlay.className = "magic-box-underlay";
+      this.element.appendChild(this.underlay);
+
+      this.highlightContainer = document.createElement('span');
+      this.highlightContainer.className = "magic-box-highlight-container";
+      this.underlay.appendChild(this.highlightContainer);
+
+      this.ghostTextContainer = document.createElement('span');
+      this.ghostTextContainer.className = "magic-box-ghost-text";
+      this.underlay.appendChild(this.ghostTextContainer);
+
+      this.input = <HTMLInputElement>document.createElement(multiline ? 'textarea' : 'input');
+      this.element.appendChild(this.input);
+
+      this.suggestions = document.createElement('div');
+      this.suggestions.className = "magic-box-suggestions";
+      this.element.appendChild(this.suggestions);
+
       this.setupHandler();
     }
 
@@ -40,7 +60,8 @@ module coveo {
     }
 
     public getSuggestions(): JQueryPromise<MagicSuggestion[]> {
-      var nbPending = this.suggestionsCreators.length;
+      
+      this.pendingSuggestion = this.suggestionsCreators.length;
       var results: MagicSuggestion[] = [];
       var deferred = $.Deferred<MagicSuggestion[]>();
       _.each(this.suggestionsCreators, (suggestionsCreator) => {
@@ -66,8 +87,8 @@ module coveo {
     }
 
     public updateAutocomplete() {
-      this.underlay.find('.magic-box-ghost-text').detach();
-      this.suggestions.empty();
+      this.ghostTextContainer.innerHTML = '';
+      this.suggestions.innerHTML = '';
 
       var ghostText = $.Deferred<string>();
       var suggestions = this.getSuggestions();
@@ -80,26 +101,21 @@ module coveo {
           ghostText.resolve('');
         }
 
-        this.suggestions.append(_.map(suggestions, (suggestion: MagicSuggestion) => {
-          var suggestionDom = $('<div />').addClass('magic-box-suggestion');
-          if (suggestion.html != null) {
-            suggestionDom.html(suggestion.html);
-          } else {
-            suggestionDom.html(this.highligthSuggestion(suggestion.text))
-          }
-          var onSelect = suggestion.onSelect != null ? suggestion.onSelect : ()=>{
+        _.each(suggestions, (suggestion: MagicSuggestion) => {
+          var suggestionDom = document.createElement('div');
+          suggestionDom.className = 'magic-box-suggestion';
+          suggestionDom.innerHTML = suggestion.html != null ? suggestion.html : this.highligthSuggestion(suggestion.text);
+          var onSelect = suggestion.onSelect != null ? suggestion.onSelect : () => {
             this.setText(suggestion.text);
           }
-          suggestionDom.click(onSelect);
-          return suggestionDom;
-        }));
+          suggestionDom.onclick = onSelect;
+          this.suggestions.appendChild(suggestionDom);
+        });
       });
 
       ghostText.done((ghostText) => {
         if (ghostText != null) {
-          $('<span class="magic-box-ghost-text" />')
-            .text(ghostText)
-            .appendTo(this.underlay);
+          this.ghostTextContainer.appendChild(document.createTextNode(ghostText))
         }
       })
     }
@@ -121,24 +137,23 @@ module coveo {
     }
 
     public setText(text: string) {
-      this.input.val(text);
+      $(this.input).val(text);
       this.onChange();
     }
 
     public setCursor(index: number) {
-      var input = <HTMLInputElement>this.input.get(0);
-      if (input.createTextRange) {
-        var range = input.createTextRange();
+      if (this.input.createTextRange) {
+        var range = this.input.createTextRange();
         range.move("character", index);
         range.select();
-      } else if (input.selectionStart != null) {
-        input.focus();
-        input.setSelectionRange(index, index);
+      } else if (this.input.selectionStart != null) {
+        this.input.focus();
+        this.input.setSelectionRange(index, index);
       }
     }
 
     private setupHandler() {
-      this.input
+      $(this.input)
         .blur(() => this.blur())
       //.change(()=>this.change())
       //.click(()=>this.click())
@@ -149,7 +164,9 @@ module coveo {
         .mouseleave(() => this.mouseleave())
       //.past(()=>this.past())
       //.past(()=>this.past())
-        .scroll(() => this.updateScroll(false))
+        .scroll(() =>
+          this.updateScroll(false)
+          )
     }
 
     private blur() {
@@ -219,7 +236,8 @@ module coveo {
     private highlightDefer: number;
     private highligth() {
       this.highlightDefer = this.highlightDefer || MagicBox.defer(() => {
-        this.underlay.empty().append(Grammar.resultToElement(this.grammarResult, this.text));
+        this.highlightContainer.innerHTML = '';
+        this.highlightContainer.appendChild(Grammar.resultToElement(this.grammarResult, this.text));
         this.updateAutocomplete();
         this.updateScroll(false);
         this.highlightDefer = null;
@@ -229,7 +247,10 @@ module coveo {
     private updateScrollDefer: number;
     private updateScroll(defer = true) {
       var callback = () => {
-        this.underlay.scrollLeft(this.input.scrollLeft());
+        this.underlay.style.visibility = 'hidden';
+        this.underlay.scrollLeft = this.input.scrollLeft;
+        this.underlay.scrollTop = this.input.scrollTop;
+        this.underlay.style.visibility = 'visible';
         this.updateScrollDefer = null;
         if (this.hasFocus) {
           this.updateScroll();
@@ -243,7 +264,7 @@ module coveo {
     }
 
     private onChange() {
-      var text = this.input.val();
+      var text = this.input.value;
       if (this.text != text) {
         this.text = text;
         this.grammarResult = this.grammar.parse(text);
