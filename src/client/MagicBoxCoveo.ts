@@ -57,8 +57,8 @@ class MagicBoxCoveo extends MagicBox {
 
   private ghostIndex = 0;
 
-  constructor(public element: JQuery) {
-    super(element);
+  constructor(public element: HTMLElement) {
+    super(element, true);
     _.each(MagicBoxCoveo.matchers, (matcher)=> {
       this.addMatcher(matcher);
     })

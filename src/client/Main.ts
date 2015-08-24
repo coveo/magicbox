@@ -5,5 +5,5 @@
 /// <reference path="MagicBoxCoveo.ts" />
 var m;
 $(()=>{
-  m = new MagicBoxCoveo($('.magic'))
+  m = new MagicBoxCoveo($('.magic').get(0))
 });

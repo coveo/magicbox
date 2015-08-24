@@ -1,30 +1,36 @@
 interface MagicMatcher {
-  regex:RegExp;
-  class:string;
-  index?:number;
-  condition?:(text: string, tokens: MagicToken[])=>boolean;
+  regex: RegExp;
+  class: string;
+  index?: number;
+  condition?: (text: string, tokens: MagicToken[]) => boolean;
 }
 
 interface MagicToken {
-  start:number;
-  length:number;
-  class:string;
-  subTokens?:MagicToken[];
+  start: number;
+  length: number;
+  class: string;
+  subTokens?: MagicToken[];
 }
 
 class MagicBox {
-  private input: JQuery;
-  private underlay: JQuery;
+  private input: HTMLInputElement;
+  private underlay: HTMLElement;
   private text: string;
   private tokens: MagicToken[];
   private hasFocus: boolean = false;
   private hasMouseOver: boolean = false;
   public matchers: MagicMatcher[] = [];
 
-  constructor(public element: JQuery) {
-    element.addClass('magic-box');
-    this.underlay = $('<div class="magic-box-underlay" />').appendTo(element);
-    this.input = $('<input type="text" />').appendTo(element);
+  constructor(public element: HTMLElement, private multiline = false) {
+    $(element).addClass('magic-box').toggleClass('magic-box-multiline', multiline);
+
+    this.underlay = document.createElement('div');
+    this.underlay.className = "magic-box-underlay";
+    this.element.appendChild(this.underlay);
+
+    this.input = <HTMLInputElement>document.createElement(multiline ? 'textarea' : 'input');
+    this.element.appendChild(this.input);
+
     this.setupHandler();
   }
 
@@ -58,11 +64,11 @@ class MagicBox {
 
   public updateGhostText() {
     var ghostText = this.ghostText();
-    this.underlay.find('.magic-box-ghost-text').detach();
+    $(this.underlay).find('.magic-box-ghost-text').detach();
     if (ghostText != null) {
       $('<span class="magic-box-ghost-text" />')
-          .text(ghostText)
-          .appendTo(this.underlay);
+        .text(ghostText)
+        .appendTo(this.underlay);
     }
   }
 
@@ -79,37 +85,36 @@ class MagicBox {
   }
 
   public setText(text: string) {
-    this.input.val(text);
+    $(this.input).val(text);
     this.tokenize();
   }
 
   public setCursor(index: number) {
-    var input = <HTMLInputElement>this.input.get(0);
-    if (input.createTextRange) {
-      var range = input.createTextRange();
+    if (this.input.createTextRange) {
+      var range = this.input.createTextRange();
       range.move("character", index);
       range.select();
-    } else if (input.selectionStart != null) {
-      input.focus();
-      input.setSelectionRange(index, index);
+    } else if (this.input.selectionStart != null) {
+      this.input.focus();
+      this.input.setSelectionRange(index, index);
     }
   }
 
   private setupHandler() {
-    this.input
-        .blur(()=>this.blur())
-      //.change(()=>this.change())
-      //.click(()=>this.click())
-        .focus(()=>this.focus())
-        .keydown((e)=>this.keydown(e))
-        .keyup((e)=>this.keyup(e))
-        .mouseenter(()=>this.mouseenter())
-        .mouseleave(()=>this.mouseleave())
-      //.past(()=>this.past())
-      //.past(()=>this.past())
-        .scroll(()=>
-            this.updateScroll(false)
-    )
+    $(this.input)
+      .blur(() => this.blur())
+    //.change(()=>this.change())
+    //.click(()=>this.click())
+      .focus(() => this.focus())
+      .keydown((e) => this.keydown(e))
+      .keyup((e) => this.keyup(e))
+      .mouseenter(() => this.mouseenter())
+      .mouseleave(() => this.mouseleave())
+    //.past(()=>this.past())
+    //.past(()=>this.past())
+      .scroll(() =>
+        this.updateScroll(false)
+        )
   }
 
   private blur() {
@@ -139,7 +144,7 @@ class MagicBox {
         break;
       default:
         // wait the key to be enter
-        setTimeout(()=> {
+        setTimeout(() => {
           this.tokenize();
         });
         break;
@@ -180,7 +185,8 @@ class MagicBox {
 
   private highligth() {
     if (this.highlightDefer == null) {
-      this.highlightDefer = MagicBox.defer(()=> {
+      this.highlightDefer = this.defer(() => {
+        this.underlay.innerHTML = '';
         this.highlightTokens(this.text, this.tokens, this.underlay);
         this.updateGhostText();
         this.updateScroll(false);
@@ -189,23 +195,22 @@ class MagicBox {
     }
   }
 
-  private highlightTokens(text: string, tokens: MagicToken[], container: JQuery) {
+  private highlightTokens(text: string, tokens: MagicToken[], container: HTMLElement) {
     var index = 0;
-    container.empty();
-    _.forEach(tokens, (token)=> {
+    _.forEach(tokens, (token) => {
       if (token != null) {
         if (index < token.start) {
-          $('<span />')
-              .text(text.substr(index, token.start - index))
-              .appendTo(container);
+          var plainText = document.createElement('span');
+          plainText.innerText = text.substr(index, token.start - index);
+          container.appendChild(plainText)
         }
         index = token.start;
         var tokenText = text.substr(index, token.length);
-        var tokenDom = $('<span class="magic-box-token" />')
-            .addClass(token.class)
-            .appendTo(container);
+        var tokenDom = document.createElement('span');
+        tokenDom.className = ['magic-box-token', token.class].join(' ');
+        container.appendChild(tokenDom)
         if (token.subTokens == null || token.subTokens.length == 0) {
-          tokenDom.text(tokenText)
+          tokenDom.innerText = tokenText;
         } else {
           this.highlightTokens(tokenText, token.subTokens, tokenDom);
         }
@@ -214,8 +219,8 @@ class MagicBox {
     });
     if (index < text.length) {
       $('<span />')
-          .text(text.substr(index, text.length - index))
-          .appendTo(container);
+        .text(text.substr(index, text.length - index))
+        .appendTo(container);
     }
   }
 
@@ -223,8 +228,11 @@ class MagicBox {
 
   private updateScroll(defer = true) {
     if (this.updateScrollDefer == null) {
-      var callback = ()=> {
-        this.underlay.scrollLeft(this.input.scrollLeft());
+      var callback = () => {
+        this.underlay.style.visibility = 'hidden';
+        this.underlay.scrollLeft = this.input.scrollLeft;
+        this.underlay.scrollTop = this.input.scrollTop;
+        this.underlay.style.visibility = 'visible';
         this.updateScrollDefer = null;
         if (this.hasFocus) {
           this.updateScroll();
@@ -233,13 +241,13 @@ class MagicBox {
       if (!defer) {
         callback();
       } else {
-        this.updateScrollDefer = MagicBox.defer(callback)
+        this.updateScrollDefer = this.defer(callback)
       }
     }
   }
 
   private tokenize() {
-    var text = this.input.val();
+    var text = this.input.value;
     if (this.text != text) {
       this.text = text;
       this.tokens = [];
@@ -252,6 +260,7 @@ class MagicBox {
         this.tokens.push(token);
       }
       this.highligth();
+      this.input
     }
   }
 
@@ -260,7 +269,7 @@ class MagicBox {
     var last = _.last(this.tokens);
     var index = last == null ? 0 : last.start + last.length;
     var remain = this.text.substr(index);
-    var matcher = _.find(this.matchers, (matcher)=>matcher.regex.test(remain) && (matcher.condition == null || matcher.condition(this.text, this.tokens)));
+    var matcher = _.find(this.matchers, (matcher) => matcher.regex.test(remain) && (matcher.condition == null || matcher.condition(this.text, this.tokens)));
 
     if (matcher != null) {
       var match = remain.match(matcher.regex);
@@ -290,7 +299,7 @@ class MagicBox {
     return null;
   }
 
-  static defer(callback: ()=>void) {
+  private defer(callback: () => void) {
     if ('requestAnimationFrame' in window) {
       return requestAnimationFrame(callback);
     }
