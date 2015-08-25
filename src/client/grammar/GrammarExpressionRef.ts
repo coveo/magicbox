@@ -4,7 +4,6 @@ module coveo {
     }
 
     parse(value: string): GrammarResult {
-      console.log(this);
       var ref = this.grammar.getExpression(this.ref);
       if (ref == null) {
         throw 'GrammarExpression not found:' + this.ref
@@ -35,7 +34,8 @@ module coveo {
             currentValue = currentValue.substr(spaces[0].length);
             results.push({
               value: spaces[0],
-              id: 'spaces'
+              id: 'spaces',
+              expression:null
             })
           }
         }
@@ -44,8 +44,9 @@ module coveo {
         return null
       }
       return {
+        expression: this,
         value: totalValue,
-        id: this.id + '[]',
+        id: this.id,
         subResults: results
       }
     }

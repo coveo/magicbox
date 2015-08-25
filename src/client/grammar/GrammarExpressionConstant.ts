@@ -7,7 +7,6 @@ module coveo {
     }
 
     public parse(value: string): GrammarResult {
-      console.log(this);
       if (value.indexOf(<string>this.value) != 0) {
         return null;
       }

@@ -4,7 +4,6 @@ module coveo {
     }
 
     parse(value: string): GrammarResult {
-      console.log(this);
       var groups = value.match(this.value);
       if (groups == null) {
         return null;

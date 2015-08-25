@@ -24,7 +24,8 @@ module coveo {
             currentValue = currentValue.substr(spaces[0].length);
             results.push({
               value: spaces[0],
-              id: 'spaces'
+              id: 'spaces',
+              expression: null
             })
           }
         }

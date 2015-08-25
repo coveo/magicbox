@@ -18,14 +18,15 @@ module coveo {
   export interface GrammarResult {
     value: string;
     id?: string;
-    expression?: GrammarExpression;
+    expression: GrammarExpression;
     subResults?: GrammarResult[];
+    groups?: RegExpMatchArray;
   }
 
   export class Grammar {
 
-    private start: GrammarExpression;
-    private expressions: { [id: string]: GrammarExpression } = {};
+    public start: GrammarExpression;
+    public expressions: { [id: string]: GrammarExpression } = {};
 
     public eatSpaces = true;
 
@@ -38,7 +39,7 @@ module coveo {
             this.expressions[id] = expression;
           }
         })
-      })
+      });
     }
 
     public addExpressions(expressions: { [id: string]: GrammarBasicExpression }) {
@@ -152,6 +153,17 @@ module coveo {
       }
       element['result'] = result;
       return element;
+    }
+    
+    public static resultToString(result: GrammarResult): string {
+      if(result == null){
+        return '';
+      }
+      if (result.subResults == null) {
+        return result.value; 
+      } else {
+        return _.map(result.subResults, (subResult) => Grammar.resultToString(subResult)).join('');
+      }
     }
   }
 }

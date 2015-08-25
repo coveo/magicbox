@@ -24,10 +24,10 @@ module coveo {
     private grammarResult: GrammarResult;
 
     private suggestionsCreators: MagicSuggestionsCreator[] = [];
-    private pendingSuggestion: JQueryPromise<MagicSuggestion[]>;
+    private pendingSuggestion: JQueryDeferred<MagicSuggestion[]>;
 
-    constructor(public element: HTMLElement, public grammar: Grammar, private multiline = false) {
-      $(element).addClass('magic-box').toggleClass('magic-box-multiline', multiline);
+    constructor(public element: HTMLElement, public grammar: Grammar) {
+      $(element).addClass('magic-box');
 
       this.underlay = document.createElement('div');
       this.underlay.className = "magic-box-underlay";
@@ -41,7 +41,7 @@ module coveo {
       this.ghostTextContainer.className = "magic-box-ghost-text";
       this.underlay.appendChild(this.ghostTextContainer);
 
-      this.input = <HTMLInputElement>document.createElement(multiline ? 'textarea' : 'input');
+      this.input = <HTMLInputElement>document.createElement('input');
       this.element.appendChild(this.input);
 
       this.suggestions = document.createElement('div');
@@ -60,19 +60,27 @@ module coveo {
     }
 
     public getSuggestions(): JQueryPromise<MagicSuggestion[]> {
-      
-      this.pendingSuggestion = this.suggestionsCreators.length;
+      if (this.pendingSuggestion != null) {
+        this.pendingSuggestion.reject('');
+      }
+      var nbPending = this.suggestionsCreators.length;
       var results: MagicSuggestion[] = [];
-      var deferred = $.Deferred<MagicSuggestion[]>();
+      var deferred = this.pendingSuggestion = $.Deferred<MagicSuggestion[]>();
       _.each(this.suggestionsCreators, (suggestionsCreator) => {
         $.when(suggestionsCreator(this))
           .done((items: MagicSuggestion[]) => {
-            results = results.concat(items);
+            if (items != null) {
+              results = results.concat(items);
+            }
           })
           .always(() => {
             nbPending--;
             if (nbPending == 0) {
-              deferred.resolve(results);
+              if (deferred == this.pendingSuggestion) {
+                deferred.resolve(results);
+              } else {
+                deferred.reject();
+              }
             }
           });
       });
@@ -107,14 +115,16 @@ module coveo {
           suggestionDom.innerHTML = suggestion.html != null ? suggestion.html : this.highligthSuggestion(suggestion.text);
           var onSelect = suggestion.onSelect != null ? suggestion.onSelect : () => {
             this.setText(suggestion.text);
+            this.setCursor(suggestion.text.length);
           }
           suggestionDom.onclick = onSelect;
+          suggestionDom['suggestion'] = suggestion;
           this.suggestions.appendChild(suggestionDom);
         });
       });
 
       ghostText.done((ghostText) => {
-        if (ghostText != null) {
+        if (ghostText != null && this.getCursor() == this.text.length) {
           this.ghostTextContainer.appendChild(document.createTextNode(ghostText))
         }
       })
@@ -124,13 +134,35 @@ module coveo {
       return text;
     }
 
-    public tabPress(preventDefault: Function) {
+    public tabPress() {
+      this.setText(this.text + this.ghostTextContainer.innerText);
     }
 
-    public upPress(preventDefault: Function) {
+    public upPress() {
+      var selected = this.suggestions.querySelector('.magic-box-selected');
+      if (selected != null) {
+        $(selected).removeClass('magic-box-selected');
+        $(selected.previousElementSibling).addClass('magic-box-selected')
+      } else {
+        $(this.suggestions).children().last().addClass('magic-box-selected');
+      }
     }
 
-    public downPress(preventDefault: Function) {
+    public downPress() {
+      var selected = this.suggestions.querySelector('.magic-box-selected');
+      if (selected != null) {
+        $(selected).removeClass('magic-box-selected');
+        $(selected.nextElementSibling).addClass('magic-box-selected')
+      } else {
+        $(this.suggestions).children().first().addClass('magic-box-selected');
+      }
+    }
+
+    public enterPress() {
+      var selected = <HTMLElement>this.suggestions.querySelector('.magic-box-selected');
+      if (selected != null) {
+        selected.onclick(null);
+      }
     }
 
     public anyPress(preventDefault: Function) {
@@ -139,6 +171,10 @@ module coveo {
     public setText(text: string) {
       $(this.input).val(text);
       this.onChange();
+    }
+
+    public setTextFromResult(result: GrammarResult = this.grammarResult) {
+      this.setText(Grammar.resultToString(result));
     }
 
     public setCursor(index: number) {
@@ -152,18 +188,37 @@ module coveo {
       }
     }
 
+    public getCursor() {
+      return this.input.selectionStart
+    }
+
+    public resultAtCursor(index = this.getCursor(), result = this.grammarResult): GrammarResult[] {
+      if (result == null || index < 0 || index > result.value.length) {
+        return null;
+      }
+      if (result.subResults != null) {
+        var subResult: GrammarResult[];
+        for (var i = 0; i < result.subResults.length && subResult == null; i++) {
+          subResult = this.resultAtCursor(index, result.subResults[i]);
+          index -= result.subResults[i].value.length;
+        }
+        if (subResult != null) {
+          subResult.push(result);
+          return subResult;
+        }
+        debugger;
+      }
+      return [result]
+    }
+
     private setupHandler() {
       $(this.input)
         .blur(() => this.blur())
-      //.change(()=>this.change())
-      //.click(()=>this.click())
         .focus(() => this.focus())
         .keydown((e) => this.keydown(e))
         .keyup((e) => this.keyup(e))
         .mouseenter(() => this.mouseenter())
         .mouseleave(() => this.mouseleave())
-      //.past(()=>this.past())
-      //.past(()=>this.past())
         .scroll(() =>
           this.updateScroll(false)
           )
@@ -171,14 +226,11 @@ module coveo {
 
     private blur() {
       this.hasFocus = false;
-    }
-
-    private change() {
-
-    }
-
-    private click() {
-
+      setTimeout(() => {
+        if (!this.hasFocus) {
+          this.suggestions.innerHTML = '';
+        }
+      }, 300);
     }
 
     private focus() {
@@ -196,7 +248,7 @@ module coveo {
           break;
         default:
           // wait the key to be enter
-          setTimeout(() => {
+          MagicBox.defer(() => {
             this.onChange();
           });
           break;
@@ -207,15 +259,18 @@ module coveo {
       switch (e.keyCode || e.which) {
         // TAB
         case 9:
-          this.tabPress(e.preventDefault);
+          this.tabPress();
           break;
         // Up
         case 38:
-          this.upPress(e.preventDefault);
+          this.upPress();
           break;
         // Down
         case 40:
-          this.downPress(e.preventDefault);
+          this.downPress();
+          break;
+        case 13:
+          this.enterPress();
           break;
         default:
           this.onChange();
