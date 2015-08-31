@@ -12,6 +12,7 @@ module coveo {
       if (index != 0) {
         return null;
       }
+      
       return {
         value: groups.shift(),
         groups: groups,

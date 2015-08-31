@@ -1,5 +1,4 @@
-/// <reference path="../MagicBox.ts" />
-
+/// <reference path="../MagicBox/MagicBox.ts" />
 interface Field {
   type: string;
   name: string;
@@ -44,7 +43,7 @@ var FieldAddon = (magicBox: coveo.MagicBox, access_token: string) => {
               text: field.name,
               onSelect: () => {
                 current.value = field.name;
-                magicbox.setTextFromResult()
+                magicBox.setTextFromResult()
               }
             }
           }));
@@ -88,7 +87,7 @@ var FieldAddon = (magicBox: coveo.MagicBox, access_token: string) => {
                       fieldValue.value = JSON.stringify(stringValue);
                     }
                     fieldValue.subResults = null;
-                    magicbox.setTextFromResult()
+                    magicBox.setTextFromResult()
                   }
                 }
               }));

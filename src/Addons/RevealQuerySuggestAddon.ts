@@ -1,5 +1,4 @@
-/// <reference path="../MagicBox.ts" />
-
+/// <reference path="../MagicBox/MagicBox.ts" />
 interface Completion {
   value: string;
   score: number;

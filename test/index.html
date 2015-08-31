@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SmartUi</title>
+    <meta name="viewport"
+          content="width=device-width, height=device-height, initial-scale=1.0,  maximum-scale=1.0, user-scalable=0">
+    <script type="application/javascript" src="../lib/jquery.js"></script>
+    <script type="application/javascript" src="../lib/underscore.js"></script>
+    <script type="application/javascript" src="../bin/MagicBox.js"></script>
+    <link rel="stylesheet" type="text/css" href="../bin/css/style.css">
+</head>
+<body>
+<h1>Magic Box</h1>
+<h4>Just as you expected</h4>
+
+<div class="magic"></div>
+<script>
+    var access_token = '7b9b9300-3901-437b-bafd-51ae596f1b16';
+
+    var magicbox;
+    $(function () {
+        magicbox = new coveo.MagicBox($('.magic').get(0), coveoGrammar);
+        RevealQuerySuggestAddon(magicbox, access_token);
+        FieldAddon(magicbox, access_token);
+    })
+</script>
+</body>
+</html>

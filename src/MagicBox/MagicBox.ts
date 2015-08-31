@@ -1,5 +1,5 @@
-/// <reference path="jquery.d.ts" />
-/// <reference path="grammar/Grammar.ts" />
+/// <reference path="../jquery.d.ts" />
+/// <reference path="Grammar/Grammar.ts" />
 module coveo {
   export interface MagicSuggestion {
     text: string;

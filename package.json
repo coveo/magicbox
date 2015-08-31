@@ -4,8 +4,7 @@
   "description": "MagicBox",
   "main": "target/server/Main.js",
   "dependencies": {
-    "express": "^4.11.0",
-    "gulp": "^3.8.10",
+    "gulp": "^3.9.0",
     "gulp-concat": "^2.4.3",
     "gulp-declare": "^0.3.0",
     "gulp-less": "^2.0.1",
@@ -19,7 +18,7 @@
   "repository": {},
   "scripts": {
     "postinstall": "gulp",
-    "start": "node target/server/Main.js",
+    "start": "open target/MagicBox/index.html",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

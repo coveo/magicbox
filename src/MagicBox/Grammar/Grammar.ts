@@ -1,4 +1,4 @@
-/// <reference path="../underscore.d.ts" />
+/// <reference path="../../underscore.d.ts" />
 /// <reference path="GrammarExpressionConstant.ts" />
 /// <reference path="GrammarExpressionList.ts" />
 /// <reference path="GrammarExpressionOptions.ts" />
@@ -6,18 +6,16 @@
 /// <reference path="GrammarExpressionRegExp.ts" />
 
 module coveo {
-  export type GrammarBasicExpression = RegExp|string;
-
-  export type GrammarExpressionString = GrammarExpressionOptions|GrammarExpressionRef|GrammarExpressionConstant;
+  export type GrammarExpressionDef = GrammarExpressionDefSimple|GrammarExpressionDefSimple[];
+  export type GrammarExpressionDefSimple = RegExp|string;
 
   export interface GrammarExpression {
-    id: string; // use for hightlight
+    id: string;
     parse(value: string): GrammarResult;
   }
 
   export interface GrammarResult {
     value: string;
-    id?: string;
     expression: GrammarExpression;
     subResults?: GrammarResult[];
     groups?: RegExpMatchArray;
@@ -28,9 +26,7 @@ module coveo {
     public start: GrammarExpression;
     public expressions: { [id: string]: GrammarExpression } = {};
 
-    public eatSpaces = true;
-
-    constructor(start: GrammarBasicExpression, expressions: { [id: string]: GrammarBasicExpression } = {}, ...extendsGrammars: Grammar[]) {
+    constructor(start: GrammarExpressionDef, expressions: { [id: string]: GrammarExpressionDef } = {}, ...extendsGrammars: Grammar[]) {
       this.start = this.buildExpression(start, 'start');
       this.addExpressions(expressions);
       _.each(extendsGrammars, (grammar) => {
@@ -42,8 +38,8 @@ module coveo {
       });
     }
 
-    public addExpressions(expressions: { [id: string]: GrammarBasicExpression }) {
-      _.forEach(expressions, (basicExpression: GrammarBasicExpression, id: string) => {
+    public addExpressions(expressions: { [id: string]: GrammarExpressionDef }) {
+      _.forEach(expressions, (basicExpression: GrammarExpressionDef, id: string) => {
         if (id in this.expressions) {
           throw 'Grammar already contain the id:' + id;
         }
@@ -56,24 +52,22 @@ module coveo {
     }
 
     public parse(value: string): GrammarResult {
-      var result = this.start.parse(value);
-      return result;
+      return this.start.parse(value);
     }
 
-    public buildExpression(value: GrammarBasicExpression, id: string): GrammarExpression {
+    public buildExpression(value: GrammarExpressionDef, id: string): GrammarExpression {
       var type = typeof value;
       if (type == 'undefined') {
         throw 'Invalid GrammarExpression: ' + value;
       }
-      if (type == 'string') {
+      if (_.isString(value)) {
         return this.buildStringExpression(<string>value, id);
       }
-      if (type == 'object') {
-        if (value instanceof RegExp) {
-          return new GrammarExpressionRegExp(value, id, this);
-        } else if (value instanceof String) {
-          return this.buildStringExpression(<string>value, id);
-        }
+      if (_.isArray(value)) {
+        return new GrammarExpressionOptions(_.map(<GrammarExpressionDefSimple[]>value, (v, i) => this.buildExpression(v, id + '_' + i)), id, this);
+      }
+      if (_.isRegExp(value)) {
+        return new GrammarExpressionRegExp(<RegExp>value, id, this);
       }
       throw 'Invalid GrammarExpression: ' + value;
     }
@@ -82,38 +76,22 @@ module coveo {
       var matchs = this.stringMatch(value, Grammar.spliter);
       var expressions = _.map(matchs, (match, i) => {
         if (match[1] != null) { // Ref
-          return new GrammarExpressionRef(match[1], match[2], null, this);
-        } else if (match[3] != null) { // Options
-          return new GrammarExpressionOptions(GrammarExpressionOptions.stringToParts(match[3], this), null, this);
+          var ref = match[1];
+          var occurrence = match[3] || match[2];
+          var separator = match[4];
+          return new GrammarExpressionRef(ref, occurrence, separator, id + '_' + i, this);
         } else { // Constant
-          return new GrammarExpressionConstant(match[4], null)
+          return new GrammarExpressionConstant(match[5], id + '_' + i)
         }
-      })
-      var mergedExpressions: GrammarExpression[] = []
-      _.each(expressions, (expression: GrammarExpression) => {
-        var last = <GrammarExpressionConstant>_.last(mergedExpressions);
-        if (expression instanceof GrammarExpressionConstant && last != null && last instanceof GrammarExpressionConstant) {
-          mergedExpressions.pop();
-          mergedExpressions.push(new GrammarExpressionConstant(last.value + expression.value));
-        } else {
-          mergedExpressions.push(expression);
-        }
-      })
-      if (mergedExpressions.length == 1) {
+      });
+
+      if (expressions.length == 1) {
         var expression = expressions[0];
         expression.id = id;
         return expression;
       } else {
         return new GrammarExpressionList(expressions, id, this);
       }
-    }
-
-    public buildOptionsExpression(value: string) {
-      var multiRef = value.split('|');
-      if (multiRef.length > 1) {
-
-      }
-
     }
 
     public stringMatch(str: string, re: RegExp) {
@@ -126,16 +104,15 @@ module coveo {
       return groups;
     }
 
-    static ref = /(\w+)([\*\+\?])/;
-    static spliter = /\[(\w+)([\*\+\?])?\]|\[(\w+(?:\|\w+)*)\]|(.[^\[\{]*)/;
+    static spliter = /\[(\w+)(([\*\+])(\w+)?|\?)?\]|(.[^\[]*)/;
 
-    public static resultToElement(result: GrammarResult, value:string): HTMLElement {
+    public static resultToElement(result: GrammarResult, value: string): HTMLElement {
       var element = document.createElement('span');
-      if (result == null) {        
+      if (result == null) {
         element.appendChild(document.createTextNode(value))
         return element;
       }
-      var id = result.expression != null ? result.expression.id : result.id;
+      var id = result.expression != null ? result.expression.id : null;
       if (id != null) {
         var attId = document.createAttribute("data-id");
         attId.value = id;
@@ -154,13 +131,13 @@ module coveo {
       element['result'] = result;
       return element;
     }
-    
+
     public static resultToString(result: GrammarResult): string {
-      if(result == null){
+      if (result == null) {
         return '';
       }
       if (result.subResults == null) {
-        return result.value; 
+        return result.value;
       } else {
         return _.map(result.subResults, (subResult) => Grammar.resultToString(subResult)).join('');
       }
