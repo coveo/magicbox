@@ -3,21 +3,30 @@ module coveo {
     constructor(public value: RegExp, public id: string, grammar: Grammar) {
     }
 
-    parse(value: string): GrammarResult {
+    parse(value: string) {
       var groups = value.match(this.value);
-      if (groups == null) {
-        return null;
+      if (groups != null && groups.index != 0) {
+        groups = null;
       }
-      var index = value.indexOf(groups[0]);
-      if (index != 0) {
-        return null;
+      return new GrammarResultRegExp(groups, this, value);
+    }
+  }
+
+  export class GrammarResultRegExp extends GrammarResult<GrammarExpressionRegExp> {
+    constructor(public groups: RegExpMatchArray, expression: GrammarExpressionRegExp, public input: string) {
+      super(expression, input);
+      this.success = groups != null;
+    }
+
+    getValue() {
+      if (this.success) {
+        return this.groups[0]
       }
-      
-      return {
-        value: groups.shift(),
-        groups: groups,
-        expression: this
-      };
+      return null;
+    }
+
+    getExpect() {
+      return this.success ? [] : [this];
     }
   }
 }

@@ -3,56 +3,96 @@ module coveo {
     constructor(public ref: string, public occurrence: string, public separator: string, public id: string, private grammar: Grammar) {
     }
 
-    parse(value: string): GrammarResult {
+    parse(value: string): GrammarResult<GrammarExpressionRef> {
       var ref = this.grammar.getExpression(this.ref);
       if (ref == null) {
         throw 'GrammarExpression not found:' + this.ref
       }
-      var result: GrammarResult;
+
+      var subResult: GrammarResult<GrammarExpression>;
       if (this.occurrence == '?' || this.occurrence == null) {
-        result = ref.parse(value);
-        if (result == null && this.occurrence == '?') {
-          return {
-            value: '',
-            expression: this
-          }
+        subResult = ref.parse(value);
+        if (!subResult.success && this.occurrence == '?') {
+          return new GrammarResultRefSingleton(null, this, value);
         }
-        return result
+        return new GrammarResultRefSingleton(subResult, this, value);
       }
+
       var separator = this.separator && this.grammar.getExpression(this.separator);
       if (this.separator != null && separator == null) {
         throw 'GrammarExpression not found:' + this.separator
       }
+      
       // * or +
-      var results: GrammarResult[] = [];
+      var subResults: GrammarResult<GrammarExpression>[] = [];
       var currentValue = value;
-      var totalValue = '';
-      while ((result = ref.parse(currentValue)) != null) {
-        results.push(result);
-        currentValue = currentValue.substr(result.value.length);
-        totalValue += result.value;
-        if (separator != null) {
-          var separatorResult = separator.parse(currentValue);
-          if(separatorResult == null){
-            break;
+      do {
+        subResult = ref.parse(currentValue);
+        if (subResult.success) {
+          subResults.push(subResult);
+          currentValue = currentValue.substr(subResult.getLength());
+          if (separator != null) {
+            subResult = separator.parse(currentValue);
+            if (subResult.success) {
+              subResults.push(subResult);
+              currentValue = currentValue.substr(subResult.getLength());
+            }
           }
-          results.push(separatorResult);
-          currentValue = currentValue.substr(separatorResult.value.length);
-          totalValue += separatorResult.value;
         }
+      } while (subResult.success);
+
+      if (subResults.length > 1 && _.last(subResults).expression == separator) {
+        subResults.pop();
       }
-      if (results.length == 0 && this.occurrence == '+') {
-        return null;
+
+      if (this.occurrence == '+' && subResults.length == 0) {
+        return new GrammarResultRef([subResult], this, value);
       }
-      var last = _.last(results);
-      if(last != null && last.expression == separator){
-        return null;
+
+      return new GrammarResultRef(subResults, this, value);
+    }
+  }
+
+  export class GrammarResultRef extends GrammarResult<GrammarExpressionRef> {
+    constructor(public subResults: GrammarResult<GrammarExpression>[], public expression: GrammarExpressionRef, public input: string) {
+      super(expression, input);
+      if (subResults.length == 0 && this.expression.occurrence == '*') {
+        this.success = true;
+      } else {
+        this.success = _.last(subResults).success;
       }
-      return {
-        expression: this,
-        value: totalValue,
-        subResults: results
+    }
+
+    getSubResults() {
+      return this.subResults;
+    }
+
+    getExpect() {
+      return this.success ? [] : _.last(this.subResults).getExpect();
+    }
+  }
+
+  export class GrammarResultRefSingleton extends GrammarResult<GrammarExpressionRef> {
+    constructor(public result: GrammarResult<GrammarExpression>, public expression: GrammarExpressionRef, public input: string) {
+      super(expression, input);
+      if (result == null && this.expression.occurrence == '?') {
+        this.success = true;
       }
+      this.success = result.success;
+    }
+
+    getSubResults() {
+      return [this.result];
+    }
+
+    getExpect(): GrammarResult<GrammarExpression>[] {
+      if (this.result != null) {
+        return this.result.getExpect();
+      }
+      if (this.expression.occurrence != '?') {
+        return [this];
+      }
+      return [];
     }
   }
 }

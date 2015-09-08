@@ -1,4 +1,5 @@
-/// <reference path="../jquery.d.ts" />
+/// <reference path="../../bin/js/jquery.d.ts" />
+/// <reference path="../../bin/js/underscore.d.ts" />
 /// <reference path="Grammar/Grammar.ts" />
 module coveo {
   export interface MagicSuggestion {
@@ -21,17 +22,21 @@ module coveo {
     private text: string;
     private hasFocus: boolean = false;
     private hasMouseOver: boolean = false;
-    private grammarResult: GrammarResult;
+    private grammarResult: GrammarResult<GrammarExpression>;
 
     private suggestionsCreators: MagicSuggestionsCreator[] = [];
     private pendingSuggestion: JQueryDeferred<MagicSuggestion[]>;
 
     constructor(public element: HTMLElement, public grammar: Grammar) {
       $(element).addClass('magic-box');
+      
+      var inputContainer = document.createElement('div');
+      inputContainer.className = "magic-box-input";
+      element.appendChild(inputContainer);
 
       this.underlay = document.createElement('div');
       this.underlay.className = "magic-box-underlay";
-      this.element.appendChild(this.underlay);
+      inputContainer.appendChild(this.underlay);
 
       this.highlightContainer = document.createElement('span');
       this.highlightContainer.className = "magic-box-highlight-container";
@@ -42,7 +47,7 @@ module coveo {
       this.underlay.appendChild(this.ghostTextContainer);
 
       this.input = <HTMLInputElement>document.createElement('input');
-      this.element.appendChild(this.input);
+      inputContainer.appendChild(this.input);
 
       this.suggestions = document.createElement('div');
       this.suggestions.className = "magic-box-suggestions";
@@ -173,10 +178,6 @@ module coveo {
       this.onChange();
     }
 
-    public setTextFromResult(result: GrammarResult = this.grammarResult) {
-      this.setText(Grammar.resultToString(result));
-    }
-
     public setCursor(index: number) {
       if (this.input.createTextRange) {
         var range = this.input.createTextRange();
@@ -192,23 +193,28 @@ module coveo {
       return this.input.selectionStart
     }
 
-    public resultAtCursor(index = this.getCursor(), result = this.grammarResult): GrammarResult[] {
-      if (result == null || index < 0 || index > result.value.length) {
+    public resultAtCursor(index = this.getCursor(), result = this.grammarResult): GrammarResult<GrammarExpression>[] {
+      if (result == null || index < 0) {
         return null;
       }
-      if (result.subResults != null) {
-        var subResult: GrammarResult[];
-        for (var i = 0; i < result.subResults.length && subResult == null; i++) {
-          subResult = this.resultAtCursor(index, result.subResults[i]);
-          index -= result.subResults[i].value.length;
-        }
-        if (subResult != null) {
-          subResult.push(result);
-          return subResult;
-        }
-        debugger;
+      var length = result.getLength();
+      if(index >= length){
+        return null;
       }
-      return [result]
+      var subResults = result.getSubResults();
+      if (subResults != null) {
+        var subIndex = Number(index);
+        for (var i = 0; i < subResults.length; i++) {
+          var resultAtCursor = this.resultAtCursor(subIndex, subResults[i]);
+          if(resultAtCursor != null){
+            resultAtCursor.push(result);
+            return resultAtCursor;
+          }
+          subIndex -= subResults[i].getLength();
+        }
+        throw 'Well... this should not happen';
+      }
+      return [result];
     }
 
     private setupHandler() {
@@ -292,7 +298,7 @@ module coveo {
     private highligth() {
       this.highlightDefer = this.highlightDefer || MagicBox.defer(() => {
         this.highlightContainer.innerHTML = '';
-        this.highlightContainer.appendChild(Grammar.resultToElement(this.grammarResult, this.text));
+        this.highlightContainer.appendChild(this.grammarResult.toHtmlElement());
         this.updateAutocomplete();
         this.updateScroll(false);
         this.highlightDefer = null;

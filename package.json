@@ -2,25 +2,30 @@
   "name": "MagicBox",
   "version": "1.0.0",
   "description": "MagicBox",
-  "main": "target/server/Main.js",
-  "dependencies": {
-    "gulp": "^3.9.0",
-    "gulp-concat": "^2.4.3",
-    "gulp-declare": "^0.3.0",
-    "gulp-less": "^2.0.1",
-    "gulp-tsc": "^0.9.2",
-    "gulp-uglify": "^1.0.2",
-    "optimist": "^0.6.1",
-    "through2": "^0.6.3",
-    "typescript": "^1.5.3",
-    "underscore": "^1.7.0"
-  },
+  "dependencies": {},
   "repository": {},
   "scripts": {
     "postinstall": "gulp",
-    "start": "open target/MagicBox/index.html",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "open bin/index.html",
+    "test": "gulp test"
   },
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "gulp": "^3.9.0",
+    "gulp-add-src": "^0.2.0",
+    "gulp-concat": "^2.4.3",
+    "gulp-foreach": "^0.1.0",
+    "gulp-jasmine-phantom": "^2.0.1",
+    "gulp-less": "^2.0.1",
+    "gulp-order": "^1.1.1",
+    "gulp-tsc": "^0.9.2",
+    "gulp-uglify": "^1.0.2",
+    "gulp-util": "^3.0.6",
+    "jasmine-core": "^2.3.4",
+    "jquery": "^2.1.4",
+    "phantomjs": "^1.9.17",
+    "typescript": "^1.5.3",
+    "underscore": "^1.8.3"
+  }
 }

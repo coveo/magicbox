@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>SmartUi</title>
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0,  maximum-scale=1.0, user-scalable=0">
+
+  <script type="text/javascript" src="node_modules/jquery/dist/jquery.js"></script>
+  <script type="text/javascript" src="node_modules/underscore/underscore.js"></script>
+  <script type="application/javascript" src="bin/js/MagicBox/MagicBox.js"></script>
+  <script type="application/javascript" src="bin/js/Grammars/Base.js"></script>
+  <script type="application/javascript" src="bin/js/Grammars/FieldQuery.js"></script>
+  <link rel="stylesheet" type="text/css" href="bin/css/MagicBox.css" />
+  <style>
+    body {
+      background: #EEEEEE;
+    }
+    
+    .wrapper {
+      max-width: 300px;
+      margin: 10% auto;
+    }
+  </style>
+  <script>
+    var access_token = '7b9b9300-3901-437b-bafd-51ae596f1b16';
+    
+    // FieldAddon
+    var fields;
+    var getFields = function() {
+          if (fields == null) {
+            fields = $.get('https://cloudplatform.coveo.com/rest/search/fields', {
+              access_token: access_token
+            });
+          }
+          return fields;
+        };
+    var getFieldValue = function() {
+            fields = $.get('https://cloudplatform.coveo.com/rest/search/fields', {
+              access_token: access_token
+            });
+          return fields;
+        };
+  
+  </script>
+</head>
+
+<body>
+  <div class="wrapper">
+    <div id="mb"></div>
+  </div>
+  <script>
+    var magicbox;
+    $(function () {
+        magicbox = new coveo.MagicBox($('#mb').get(0), coveo.grammars.FieldQuery());
+        //RevealQuerySuggestAddon(magicbox, access_token);
+        //FieldAddon(magicbox, access_token);
+    })
+  </script>
+</body>
+
+</html>

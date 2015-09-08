@@ -1,28 +1,38 @@
 module coveo {
-  
-  export class GrammarExpressionList implements GrammarExpression {    
-    constructor(private parts:GrammarExpression[], public id: string, private grammar: Grammar) {
+
+  export class GrammarExpressionList implements GrammarExpression {
+    constructor(private parts: GrammarExpression[], public id: string, private grammar: Grammar) {
     }
-    
-    parse(value: string){
-      var results: GrammarResult[] = [];
+
+    parse(value: string) {
+      var subResults: GrammarResult<GrammarExpression>[] = [];
       var currentValue = value;
-      var totalValue = '';
       for (var i = 0; i < this.parts.length; i++) {
         var part = this.parts[i];
-        var result = part.parse(currentValue);
-        if (result == null) {
-          return null;
+        var subResult = part.parse(currentValue);
+        subResults.push(subResult);
+        if (subResult.success) {
+          currentValue = currentValue.substr(subResult.getLength());
+        } else {
+          break;
         }
-        results.push(result);
-        currentValue = currentValue.substr(result.value.length);
-        totalValue += result.value;
       }
-      return {
-        value: totalValue,
-        expression: this,
-        subResults: results
-      }
+      return new GrammarResultList(subResults, this, value);
+    }
+  }
+
+  export class GrammarResultList extends GrammarResult<GrammarExpressionList> {
+    constructor(public subResults: GrammarResult<GrammarExpression>[], expression: GrammarExpressionList, public input:string) {
+      super(expression, input);
+      this.success = _.last(subResults).success;
+    }
+
+    getSubResults() {
+      return this.subResults;
+    }
+    
+    getExpect() {
+      return _.last(this.subResults).getExpect();
     }
   }
 }

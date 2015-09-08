@@ -1,4 +1,5 @@
-/// <reference path="../MagicBox/MagicBox.ts" />
+/// <reference path="../../bin/js/MagicBox/MagicBox.d.ts" />
+/*
 interface Completion {
   value: string;
   score: number;
@@ -42,3 +43,4 @@ var RevealQuerySuggestAddon = (magicBox: coveo.MagicBox, access_token: string) =
     }
   })
 }
+*/
