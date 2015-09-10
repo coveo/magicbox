@@ -1,30 +1,33 @@
 module Coveo.MagicBox {
   export class GrammarExpressionList implements GrammarExpression {
-    constructor(private parts: GrammarExpression[], public id: string, private grammar: Grammar) {
+    constructor(private parts: GrammarExpression[], public id: string) {
       if (parts.length == 0) {
         throw JSON.stringify(id) + ' should have at least 1 parts';
       }
     }
 
-    parse(value: string): GrammarResult {
+    parse(input: string, end: boolean): GrammarResult {
       var subResults: GrammarResultSuccess[] = [];
-      var currentValue = value;
+      var subInput = input;
       for (var i = 0; i < this.parts.length; i++) {
         var part = this.parts[i];
-        var subResult = part.parse(currentValue);
+        var subResult = part.parse(subInput, end && i == this.parts.length - 1);
         if (subResult.success) {
           subResults.push(subResult.success);
-          currentValue = currentValue.substr(subResult.success.getLength());
+          subInput = subInput.substr(subResult.success.getLength());
         } else {
           break;
         }
       }
-
       if (subResult.success) {
-        return new GrammarResultSuccess(<GrammarResultSuccess[]>subResults, this, value);
+        return new GrammarResultSuccess(subResults, this, input);
       }
 
-      return new GrammarResultFail(subResult.fail.getExpect(), this, value);
+      return new GrammarResultFail(subResult.fail.getExpect(), this, input);
+    }
+
+    public toString(){
+      return this.id;
     }
   }
 }

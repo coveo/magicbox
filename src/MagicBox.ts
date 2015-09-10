@@ -1,6 +1,7 @@
 /// <reference path="../bin/jquery.d.ts" />
 /// <reference path="../bin/underscore.d.ts" />
 /// <reference path="Grammar/Grammar.ts" />
+/// <reference path="Grammars/CoveoField.ts" />
 module Coveo.MagicBox {
   export interface Suggestion {
     text: string;

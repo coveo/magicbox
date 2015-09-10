@@ -3,12 +3,18 @@ module Coveo.MagicBox {
     constructor(public value: string, public id: string) {
     }
 
-    public parse(value: string):GrammarResult {
-      if (value.indexOf(this.value) == 0) {
-        return new GrammarResultSuccess(this.value, this, value);
-      } else {
-        return new GrammarResultFail(true, this, value);
+    public parse(input: string, end: boolean): GrammarResult {
+      if (input.indexOf(this.value) != 0) {
+        return new GrammarResultFail(true, this, input);
       }
+      if (end && input.length > this.value.length) {
+        return new GrammarResultFailEndOfInput([], this, input.substr(this.value.length));
+      }
+      return new GrammarResultSuccess(this.value, this, input);
+    }
+
+    public toString(){
+      return this.value;
     }
   }
 }

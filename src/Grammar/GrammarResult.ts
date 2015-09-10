@@ -2,8 +2,9 @@
 module Coveo.MagicBox {
 
   export class GrammarResult {
-    success:GrammarResultSuccess;
-    fail:GrammarResultFail;
+    success: GrammarResultSuccess;
+    fail: GrammarResultFail;
+
     constructor(public expression: GrammarExpression, public input: string) {
       this.success = this instanceof GrammarResultSuccess && <GrammarResultSuccess>this;
       this.fail = this instanceof GrammarResultFail && <GrammarResultFail>this;
@@ -74,9 +75,23 @@ module Coveo.MagicBox {
       }
       var subResults = this.getSubResults();
       if (subResults != null) {
-        return _.reduce(subResults, (sum, subResult:GrammarResultSuccess) => sum + subResult.getLength(), 0);
+        return _.reduce(subResults, (sum, subResult: GrammarResultSuccess) => sum + subResult.getLength(), 0);
       }
       return 0;
+    }
+
+    toTree(i = 0) {
+      var tab = _.map(_.range(i), ()=>'  ').join('');
+      var tree = tab;
+      var value = this.getStringValue();
+      tree += this.expression.id + ': ' + (value ? JSON.stringify(value) : '');
+      var subResults = this.getSubResults();
+      if (subResults) {
+        tree += '[\n' + _.map(subResults, (subResult) => {
+              return subResult.toTree(i + 1);
+            }).join("") + tab + ']';
+      }
+      return tree + "\n";
     }
   }
 
@@ -86,10 +101,17 @@ module Coveo.MagicBox {
     }
 
     getExpect(): GrammarResultFail[] {
-      if(_.isArray(this.expect)){
+      if (_.isArray(this.expect)) {
         return <GrammarResultFail[]>this.expect;
       }
       return this.expect ? [this] : [];
+    }
+
+    getHumanReadable() {
+      if (this.expression instanceof GrammarExpressionConstant) {
+        return JSON.stringify((<GrammarExpressionConstant>this.expression).value);
+      }
+      return this.expression.id;
     }
 
     getHumanReadableExpect() {
@@ -97,14 +119,28 @@ module Coveo.MagicBox {
       var groups = _.groupBy(expects, function (expect) {
         return expect.input
       });
-      return _.map(groups, (values, key: string)=> {
-        return 'Expected ' + _.map(values, (value:GrammarResult)=> {
-              if (value.expression instanceof GrammarExpressionConstant) {
-                return JSON.stringify((<GrammarExpressionConstant>value.expression).value);
-              }
-              return value.expression.id;
-            }).join(' or ') + ' but ' + (key.length > 0 ? JSON.stringify(key[0]) : 'end of input') +' found.';
-      }).join(' ');
+      var key = _.last(_.keys(groups).sort((a, b)=> {
+        return b.length - a.length;
+      }));
+      return 'Expected ' +
+          _.map(groups[key], (value: GrammarResultFail)=> value.getHumanReadable()).join(' or ') +
+          ' but ' +
+          (key.length > 0 ? JSON.stringify(key[0]) : 'end of input') +
+          ' found.';
+    }
+  }
+
+  export class GrammarResultFailEndOfInput extends GrammarResultFail {
+    constructor(expect: GrammarResultFail[], public expression: GrammarExpression, input: string) {
+      super(expect, expression, input);
+    }
+
+    getExpect(): GrammarResultFail[] {
+      return super.getExpect().concat([this]);
+    }
+
+    getHumanReadable() {
+      return 'end of input';
     }
   }
 }

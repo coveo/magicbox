@@ -3,15 +3,22 @@ module Coveo.MagicBox {
     constructor(public value: RegExp, public id: string, grammar: Grammar) {
     }
 
-    parse(value: string):GrammarResult {
-      var groups = value.match(this.value);
+    parse(input: string, end:boolean):GrammarResult {
+      var groups = input.match(this.value);
       if (groups != null && groups.index != 0) {
         groups = null;
       }
       if(groups == null){
-        return new GrammarResultFail(true, this, value);
+        return new GrammarResultFail(true, this, input);
       }
-      return new GrammarResultSuccess(groups[0], this, value);
+      if(end && input.length > groups[0].length){
+        return new GrammarResultFailEndOfInput([], this, input.substr(groups[0].length));
+      }
+      return new GrammarResultSuccess(groups[0], this, input);
+    }
+
+    public toString(){
+      return this.id;
     }
   }
 }
