@@ -4,30 +4,30 @@
 /// <reference path="GrammarExpressionOptions.ts" />
 /// <reference path="GrammarExpressionRef.ts" />
 /// <reference path="GrammarExpressionRegExp.ts" />
+/// <reference path="GrammarExpressionStart.ts" />
 
-module coveo {
+module Coveo.MagicBox {
   export type GrammarExpressionDef = GrammarExpressionDefSimple|GrammarExpressionDefSimple[];
   export type GrammarExpressionDefSimple = RegExp|string;
 
   export interface GrammarExpression {
     id: string;
-    parse(value: string): GrammarResult<GrammarExpression>;
+    parse?:(value: string)=>GrammarResult;
   }
-  
-  export class Grammar {
 
-    public start: GrammarExpression;
+  export class Grammar {
+    public start: GrammarExpressionStart;
     public expressions: { [id: string]: GrammarExpression } = {};
 
-    constructor(start: GrammarExpressionDef, expressions: { [id: string]: GrammarExpressionDef } = {}, ...extendsGrammars: Grammar[]) {
-      this.start = Grammar.buildExpression(start, 'start', this);
+    constructor(start: string, expressions: { [id: string]: GrammarExpressionDef } = {}, ...extendsGrammars: Grammar[]) {
+      this.start = new GrammarExpressionStart(start, this);
       this.addExpressions(expressions);
       _.each(extendsGrammars, (grammar) => {
         _.each(grammar.expressions, (expression, id) => {
           if (!(id in this.expressions)) {
             this.expressions[id] = expression;
           }
-        })
+        });
       });
     }
 
@@ -46,12 +46,10 @@ module coveo {
 
     public parse(value: string) {
       var result = this.start.parse(value);
-      window['lastResult'] = result;
-      console.log(result);
       return result;
     }
 
-    public static buildExpression(value: GrammarExpressionDef, id: string, grammar:Grammar): GrammarExpression {
+    public static buildExpression(value: GrammarExpressionDef, id: string, grammar: Grammar): GrammarExpression {
       var type = typeof value;
       if (type == 'undefined') {
         throw 'Invalid GrammarExpression: ' + value;
@@ -60,7 +58,7 @@ module coveo {
         return this.buildStringExpression(<string>value, id, grammar);
       }
       if (_.isArray(value)) {
-        return new GrammarExpressionOptions(_.map(<GrammarExpressionDefSimple[]>value, (v, i) => Grammar.buildExpression(v, id + '_' + i, grammar)), id, grammar);
+        return new GrammarExpressionOptions(_.map(<string[]>value, (v: string, i) => new GrammarExpressionRef(v, null, null, id + '_' + i, grammar)), id, grammar);
       }
       if (_.isRegExp(value)) {
         return new GrammarExpressionRegExp(<RegExp>value, id, grammar);
@@ -68,7 +66,7 @@ module coveo {
       throw 'Invalid GrammarExpression: ' + value;
     }
 
-    public static buildStringExpression(value: string, id: string, grammar:Grammar): GrammarExpression {
+    public static buildStringExpression(value: string, id: string, grammar: Grammar): GrammarExpression {
       var matchs = Grammar.stringMatch(value, Grammar.spliter);
       var expressions = _.map(matchs, (match, i) => {
         if (match[1] != null) { // Ref

@@ -1,13 +1,11 @@
 {
-  "name": "MagicBox",
-  "version": "1.0.0",
-  "description": "MagicBox",
+  "name": "@coveo/magicbox",
+  "version": "0.0.3",
+  "description": "Magicbox",
   "dependencies": {},
   "repository": {},
   "scripts": {
-    "postinstall": "gulp",
-    "start": "open bin/index.html",
-    "test": "gulp test"
+    "prepublish": "gulp"
   },
   "author": "",
   "license": "MIT",
@@ -20,10 +18,12 @@
     "gulp-less": "^2.0.1",
     "gulp-order": "^1.1.1",
     "gulp-tsc": "^0.9.2",
+    "gulp-typescript": "^2.8.2",
     "gulp-uglify": "^1.0.2",
     "gulp-util": "^3.0.6",
     "jasmine-core": "^2.3.4",
     "jquery": "^2.1.4",
+    "merge2": "^0.3.6",
     "phantomjs": "^1.9.17",
     "typescript": "^1.5.3",
     "underscore": "^1.8.3"

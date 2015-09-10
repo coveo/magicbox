@@ -1,83 +1,62 @@
-var path = require('path');
 var gulp = require('gulp');
-var typescript = require('gulp-tsc');
+var ts = require('gulp-typescript');
 var less = require('gulp-less');
 var jasmine = require('gulp-jasmine-phantom');
-var addsrc = require('gulp-add-src');
+var uglify = require('gulp-uglify');
 var concat = require('gulp-concat');
-var foreach = require('gulp-foreach');
+var runSequence = require('gulp-run-sequence');
+var merge = require('merge2');
+ts.reporter.longReporter();
 
-var genericTsOptions = { tmpDir: 'bin/js', declaration: true }
 
-var tsOptions = function (options) {
-  if (options == null) {
-    return genericTsOptions;
-  }
-  var keys = Object.keys(genericTsOptions);
-  keys.forEach(function (key) {
-    if (options[key] == null) {
-      options[key] = genericTsOptions[key];
-    }
-  })
-  return options;
-};
-
-gulp.task('default', ['buildLess', 'buildMagicBox', 'buildGrammars', 'buildAddons', 'test']);
+gulp.task('default', function () {
+  return runSequence(['buildLess', 'buildMagicBox'], ['test', 'uglify']);
+});
 
 gulp.task('buildLess', function () {
-  var task = gulp.src('less/**/*.less')
-    .pipe(less())
-    .pipe(gulp.dest('bin/css'));
-  return task;
+  return gulp.src('less/**/*.less')
+      .pipe(less())
+      .pipe(gulp.dest('bin/css'));
 });
 
 gulp.task('buildMagicBox', ['copyLib'], function () {
-  return gulp.src('src/MagicBox/MagicBox.ts')
-    .pipe(typescript(tsOptions({ 'out': 'MagicBox.js' })))
-    .pipe(gulp.dest('bin/js/MagicBox/'))
+  var result = gulp.src('src/MagicBox.ts')
+      .pipe(ts({
+        noEmitOnError: true,
+        declaration: true,
+        out: 'bin/MagicBox.js'
+      }));
+  return merge([
+    result.dts.pipe(concat('MagicBox.d.ts')).pipe(gulp.dest('bin/')),
+    result.js.pipe(concat('MagicBox.js')).pipe(gulp.dest('bin/'))
+  ]);
 });
 
-gulp.task('buildGrammars', ['buildMagicBox'], function () {
-  return gulp.src('src/Grammars/*.ts')
-    .pipe(foreach(function (stream, file) {
-      return stream.pipe(typescript(tsOptions({
-        'out': path.basename(file.path, '.ts') + '.js'
-      })));
-    }))
-    .pipe(gulp.dest('bin/js/Grammars/'));
-});
 
-gulp.task('buildAddons', ['buildMagicBox'], function () {
-  return gulp.src('src/Addons/*.ts')
-    .pipe(foreach(function (stream, file) {
-      return stream.pipe(typescript(tsOptions({
-        'out': path.basename(file.path, '.ts') + '.js'
-      })));
-    }))
-    .pipe(gulp.dest('bin/js/Addons'))
+gulp.task('uglify', function () {
+  return gulp.src('bin/MagicBox.js')
+      .pipe(concat('MagicBox.min.js'))
+      .pipe(uglify())
+      .pipe(gulp.dest('bin/'))
 });
 
 gulp.task('copyLib', function () {
   return gulp.src('lib/**')
-    .pipe(gulp.dest('bin/js/'))
+      .pipe(gulp.dest('bin/'))
 });
 
-gulp.task('buildTest', ['buildMagicBox', 'buildGrammars', 'buildAddons'], function () {
+gulp.task('buildTest', function () {
   return gulp.src('test/*.ts')
-    .pipe(typescript({
-      declaration: false,
-    }))
-    .pipe(concat('test.js'))
-    .pipe(gulp.dest('bin/'))
+      .pipe(ts({noEmitOnError: true}))
+      .pipe(concat('test.js'))
+      .pipe(gulp.dest('bin/'))
 });
 
 gulp.task('test', ['buildTest'], function () {
   return gulp.src([
     'node_modules/underscore/underscore.js',
     'node_modules/jquery/dist/jquery.js',
-    'bin/js/MagicBox/MagicBox.js',
-    'bin/js/Grammars/*.js',
-    'bin/js/Addons/*.js',
+    'bin/MagicBox.js',
     'bin/test.js'
   ]).pipe(jasmine({
     integration: true
@@ -86,7 +65,6 @@ gulp.task('test', ['buildTest'], function () {
 
 gulp.task('watch', function () {
   gulp.watch('less/**/*', ['buildLess']);
-  gulp.watch('src/MagicBox/**/*', ['buildMagicBox']);
-  gulp.watch('src/Grammars/**/*', ['buildGrammars']);
-  gulp.watch('src/Addons/**/*', ['buildAddons']);
+  gulp.watch('src/**/*', ['buildMagicBox']);
+  gulp.watch('test/*.ts', ['buildTest']);
 });

@@ -1,19 +1,19 @@
-/// <reference path="../../bin/js/jquery.d.ts" />
-/// <reference path="../../bin/js/underscore.d.ts" />
+/// <reference path="../bin/jquery.d.ts" />
+/// <reference path="../bin/underscore.d.ts" />
 /// <reference path="Grammar/Grammar.ts" />
-module coveo {
-  export interface MagicSuggestion {
+module Coveo.MagicBox {
+  export interface Suggestion {
     text: string;
     index?: number;
     html?: string;
     onSelect?: () => void;
   }
 
-  export interface MagicSuggestionsCreator {
-    (magicBox: MagicBox): JQueryPromise<MagicSuggestion[]>|MagicSuggestion[];
+  export interface SuggestionsCreator {
+    (magicBox: Instance): JQueryPromise<Suggestion[]>|Suggestion[];
   }
 
-  export class MagicBox {
+  export class Instance {
     private input: HTMLInputElement;
     private underlay: HTMLElement;
     private highlightContainer: HTMLElement;
@@ -22,14 +22,14 @@ module coveo {
     private text: string;
     private hasFocus: boolean = false;
     private hasMouseOver: boolean = false;
-    private grammarResult: GrammarResult<GrammarExpression>;
+    private grammarResult: GrammarResult;
 
-    private suggestionsCreators: MagicSuggestionsCreator[] = [];
-    private pendingSuggestion: JQueryDeferred<MagicSuggestion[]>;
+    private suggestionsCreators: SuggestionsCreator[] = [];
+    private pendingSuggestion: JQueryDeferred<Suggestion[]>;
 
     constructor(public element: HTMLElement, public grammar: Grammar) {
       $(element).addClass('magic-box');
-      
+
       var inputContainer = document.createElement('div');
       inputContainer.className = "magic-box-input";
       element.appendChild(inputContainer);
@@ -64,30 +64,30 @@ module coveo {
       return this.grammarResult;
     }
 
-    public getSuggestions(): JQueryPromise<MagicSuggestion[]> {
+    public getSuggestions(): JQueryPromise<Suggestion[]> {
       if (this.pendingSuggestion != null) {
         this.pendingSuggestion.reject('');
       }
       var nbPending = this.suggestionsCreators.length;
-      var results: MagicSuggestion[] = [];
-      var deferred = this.pendingSuggestion = $.Deferred<MagicSuggestion[]>();
+      var results: Suggestion[] = [];
+      var deferred = this.pendingSuggestion = $.Deferred<Suggestion[]>();
       _.each(this.suggestionsCreators, (suggestionsCreator) => {
         $.when(suggestionsCreator(this))
-          .done((items: MagicSuggestion[]) => {
-            if (items != null) {
-              results = results.concat(items);
-            }
-          })
-          .always(() => {
-            nbPending--;
-            if (nbPending == 0) {
-              if (deferred == this.pendingSuggestion) {
-                deferred.resolve(results);
-              } else {
-                deferred.reject();
+            .done((items: Suggestion[]) => {
+              if (items != null) {
+                results = results.concat(items);
               }
-            }
-          });
+            })
+            .always(() => {
+              nbPending--;
+              if (nbPending == 0) {
+                if (deferred == this.pendingSuggestion) {
+                  deferred.resolve(results);
+                } else {
+                  deferred.reject();
+                }
+              }
+            });
       });
       if (this.suggestionsCreators.length == 0) {
         deferred.resolve([]);
@@ -95,7 +95,7 @@ module coveo {
       return deferred;
     }
 
-    public addAutocomplete(creator: MagicSuggestionsCreator) {
+    public addAutocomplete(creator: SuggestionsCreator) {
       this.suggestionsCreators.push(creator);
     }
 
@@ -114,7 +114,7 @@ module coveo {
           ghostText.resolve('');
         }
 
-        _.each(suggestions, (suggestion: MagicSuggestion) => {
+        _.each(suggestions, (suggestion: Suggestion) => {
           var suggestionDom = document.createElement('div');
           suggestionDom.className = 'magic-box-suggestion';
           suggestionDom.innerHTML = suggestion.html != null ? suggestion.html : this.highligthSuggestion(suggestion.text);
@@ -193,41 +193,44 @@ module coveo {
       return this.input.selectionStart
     }
 
-    public resultAtCursor(index = this.getCursor(), result = this.grammarResult): GrammarResult<GrammarExpression>[] {
-      if (result == null || index < 0) {
-        return null;
-      }
-      var length = result.getLength();
-      if(index >= length){
-        return null;
-      }
-      var subResults = result.getSubResults();
-      if (subResults != null) {
-        var subIndex = Number(index);
-        for (var i = 0; i < subResults.length; i++) {
-          var resultAtCursor = this.resultAtCursor(subIndex, subResults[i]);
-          if(resultAtCursor != null){
-            resultAtCursor.push(result);
-            return resultAtCursor;
-          }
-          subIndex -= subResults[i].getLength();
+    public resultAtCursor(index = this.getCursor(), result = this.grammarResult): GrammarResultSuccess[] {
+      if (result.success) {
+        if (index < 0) {
+          return null;
         }
-        throw 'Well... this should not happen';
+        var length = result.success.getLength();
+        if (index > length) {
+          return null;
+        }
+        var subResults = result.success.getSubResults();
+        if (subResults != null) {
+          var subIndex = Number(index);
+          for (var i = 0; i < subResults.length; i++) {
+            var resultAtCursor = this.resultAtCursor(subIndex, subResults[i]);
+            if (resultAtCursor != null) {
+              resultAtCursor.push(result.success);
+              return resultAtCursor;
+            }
+            subIndex -= subResults[i].getLength();
+          }
+          throw 'Well... this should not happen';
+        }
+        return [result.success];
       }
-      return [result];
+      return null;
     }
 
     private setupHandler() {
       $(this.input)
-        .blur(() => this.blur())
-        .focus(() => this.focus())
-        .keydown((e) => this.keydown(e))
-        .keyup((e) => this.keyup(e))
-        .mouseenter(() => this.mouseenter())
-        .mouseleave(() => this.mouseleave())
-        .scroll(() =>
-          this.updateScroll(false)
-          )
+          .blur(() => this.blur())
+          .focus(() => this.focus())
+          .keydown((e) => this.keydown(e))
+          .keyup((e) => this.keyup(e))
+          .mouseenter(() => this.mouseenter())
+          .mouseleave(() => this.mouseleave())
+          .scroll(() =>
+              this.updateScroll(false)
+      )
     }
 
     private blur() {
@@ -254,7 +257,7 @@ module coveo {
           break;
         default:
           // wait the key to be enter
-          MagicBox.defer(() => {
+          requestAnimationFrame(() => {
             this.onChange();
           });
           break;
@@ -295,17 +298,21 @@ module coveo {
     }
 
     private highlightDefer: number;
+
     private highligth() {
-      this.highlightDefer = this.highlightDefer || MagicBox.defer(() => {
-        this.highlightContainer.innerHTML = '';
-        this.highlightContainer.appendChild(this.grammarResult.toHtmlElement());
-        this.updateAutocomplete();
-        this.updateScroll(false);
-        this.highlightDefer = null;
-      })
+      this.highlightDefer = this.highlightDefer || requestAnimationFrame(() => {
+            this.highlightContainer.innerHTML = '';
+            if (this.grammarResult.success) {
+              this.highlightContainer.appendChild(this.grammarResult.success.toHtmlElement());
+            }
+            this.updateAutocomplete();
+            this.updateScroll(false);
+            this.highlightDefer = null;
+          })
     }
 
     private updateScrollDefer: number;
+
     private updateScroll(defer = true) {
       var callback = () => {
         this.underlay.style.visibility = 'hidden';
@@ -320,7 +327,7 @@ module coveo {
       if (!defer) {
         callback();
       } else if (this.updateScrollDefer == null) {
-        this.updateScrollDefer = MagicBox.defer(callback)
+        this.updateScrollDefer = requestAnimationFrame(callback)
       }
     }
 
@@ -332,12 +339,16 @@ module coveo {
         this.highligth();
       }
     }
+  }
 
-    static defer(callback: () => void) {
-      if ('requestAnimationFrame' in window) {
-        return requestAnimationFrame(callback);
-      }
-      return setTimeout(callback);
+  export function create(element: HTMLElement, grammar: Grammar) {
+    return new Instance(element, grammar);
+  }
+
+  export function requestAnimationFrame(callback: () => void) {
+    if ('requestAnimationFrame' in window) {
+      return window.requestAnimationFrame(callback);
     }
+    return setTimeout(callback);
   }
 }
