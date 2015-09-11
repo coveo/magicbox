@@ -16,11 +16,12 @@ module Coveo.MagicBox {
 
   export class Instance {
     private input: HTMLInputElement;
+    private expectMessage: HTMLDivElement;
     private underlay: HTMLElement;
     private highlightContainer: HTMLElement;
     private ghostTextContainer: HTMLElement;
     private suggestions: HTMLElement;
-    private text: string;
+    private text: string = '';
     private hasFocus: boolean = false;
     private hasMouseOver: boolean = false;
     private grammarResult: GrammarResult;
@@ -47,14 +48,21 @@ module Coveo.MagicBox {
       this.ghostTextContainer.className = "magic-box-ghost-text";
       this.underlay.appendChild(this.ghostTextContainer);
 
-      this.input = <HTMLInputElement>document.createElement('input');
+      this.input = document.createElement('input');
+      this.input.spellcheck = false;
       inputContainer.appendChild(this.input);
+
+      this.expectMessage = document.createElement('div');
+      this.expectMessage.className = 'magic-box-expect-message';
+      this.element.appendChild(this.expectMessage);
 
       this.suggestions = document.createElement('div');
       this.suggestions.className = "magic-box-suggestions";
       this.element.appendChild(this.suggestions);
 
       this.setupHandler();
+
+      this.updateResult();
     }
 
     public getText() {
@@ -102,12 +110,12 @@ module Coveo.MagicBox {
 
     public updateAutocomplete() {
       this.ghostTextContainer.innerHTML = '';
-      this.suggestions.innerHTML = '';
 
       var ghostText = $.Deferred<string>();
       var suggestions = this.getSuggestions();
 
       suggestions.done((suggestions) => {
+        this.suggestions.innerHTML = '';
         var first = _.first(suggestions);
         if (first != null && first.text.indexOf(this.text) == 0) {
           ghostText.resolve(first.text.substr(this.text.length));
@@ -127,6 +135,8 @@ module Coveo.MagicBox {
           suggestionDom['suggestion'] = suggestion;
           this.suggestions.appendChild(suggestionDom);
         });
+
+        $(this.element).toggleClass('magic-box-hasSuggestion', suggestions.length > 0);
       });
 
       ghostText.done((ghostText) => {
@@ -301,10 +311,23 @@ module Coveo.MagicBox {
     private highlightDefer: number;
 
     private highligth() {
-      this.highlightDefer = this.highlightDefer || requestAnimationFrame(() => {
+      this.highlightDefer = this.highlightDefer ||
+          requestAnimationFrame(() => {
             this.highlightContainer.innerHTML = '';
             if (this.grammarResult.success) {
               this.highlightContainer.appendChild(this.grammarResult.success.toHtmlElement());
+            } else {
+              var expects = this.grammarResult.fail.getBestExpect();
+              var input = expects.length > 0 ? _.last(expects).input : '';
+              var text = this.getText();
+              var correct = document.createElement('span');
+              correct.appendChild(document.createTextNode(text.substr(0, text.length - input.length)));
+              this.highlightContainer.appendChild(correct);
+              var error = document.createElement('span');
+              error.className = 'magic-box-error';
+              error.appendChild(document.createTextNode(input));
+              error.className = 'magic-box-error' + (input.length > 0 ? '' : ' magic-box-error-empty');
+              this.highlightContainer.appendChild(error);
             }
             this.updateAutocomplete();
             this.updateScroll(false);
@@ -336,8 +359,17 @@ module Coveo.MagicBox {
       var text = this.input.value;
       if (this.text != text) {
         this.text = text;
-        this.grammarResult = this.grammar.parse(text);
+        this.updateResult();
         this.highligth();
+      }
+    }
+
+    private updateResult(){
+      this.grammarResult = this.grammar.parse(this.text);
+      if (this.grammarResult.fail) {
+        $(this.expectMessage).attr('title', this.grammarResult.fail.getHumanReadableExpect());
+      } else {
+        $(this.expectMessage).attr('title', null);
       }
     }
   }

@@ -1,0 +1,138 @@
+@mixin magic-box($height: 48px) {
+
+  $padding: floor(1/4 * $height);
+
+  $lineHeight: $height - $padding * 2;
+
+  $fontSize: floor($lineHeight * 2 / 3);
+
+  position: relative;
+  text-align: left;
+  border: #ccc 1px solid;
+
+  .magic-box-input {
+    background: #FFF;
+    min-height: $height;
+    .magic-box-underlay, input {
+      text-align: left;
+
+      padding: $padding 0;
+      text-indent: $padding;
+
+      font-family: arial, sans-serif;
+      font-size: $fontSize;
+      line-height: $lineHeight;
+
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+
+      white-space: nowrap;
+      word-break: normal;
+      overflow: auto;
+      box-sizing: border-box;
+      display: block;
+    }
+    input {
+      background: none;
+      border: none;
+      resize: none;
+      outline: 0;
+    }
+    .magic-box-underlay {
+      color: transparent;
+      overflow: hidden;
+      .magic-box-ghost-text {
+        color: #cccccc;
+      }
+      .magic-box-error {
+        border-bottom: solid red 2px;
+        &.magic-box-error-empty {
+          position: relative;
+          &:before {
+            display: block;
+            position: absolute;
+            top:0;
+            left: 0;
+            height: 100%;
+            content: '_';
+            border-bottom: solid red 2px;
+            text-indent: 0;
+          }
+        }
+      }
+      &:after {
+        content: '';
+        display: inline-block;
+      }
+    }
+  }
+  &.magic-box-hasSuggestion .magic-box-suggestions {
+    display: block;
+  }
+  .magic-box-suggestions {
+    position: absolute;
+    top: 100%;
+    left: -1px;
+    right: -1px;
+    background: #fff;
+    border: #ccc 1px solid;
+    z-index: 1;
+    display: none;
+    .magic-box-suggestion {
+      line-height: $lineHeight;
+      padding: $padding;
+      font-size: $fontSize;
+      background: #fff;
+      &.magic-box-selected {
+        background: #ddd;
+      }
+      &:hover {
+        background: #ddd !important;
+      }
+      + .magic-box-suggestion {
+        border-top: 1px solid #ccc;
+      }
+    }
+    &:hover .magic-box-suggestion.magic-box-selected {
+      background: #fff;
+    }
+  }
+  .magic-box-expect-message {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 8px 16px 8px;
+    border-color: transparent transparent orange transparent;
+    display: none;
+    &:before {
+      content: '!';
+      display: inline-block;
+
+      width: 16px;
+      height: 12px;
+
+      text-align: center;
+
+      position: absolute;
+      top: 4px;
+      left: -8px;
+
+      font-size: 10px;
+      line-height: 12px;
+    }
+
+    &[title] {
+      display: block;
+    }
+  }
+}
+
+.magic-box {
+  @include magic-box();
+}

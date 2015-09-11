@@ -1,12 +1,13 @@
 /// <reference path="../MagicBox.ts" />
 module Coveo.MagicBox.Grammars {
   export function CoveoField() {
-    return new Grammar('Expressions', {
+    return new Grammar('Start', {
+      Start: ['Expressions','Empty'],
       Expressions: '[Expression+Spaces]',
       Expression: ['BooleanExpression', 'BasicExpression'],
       BasicExpression: ['SubExpression','FieldQuery', 'Field', 'Word'],
       SubExpression: '([Expressions])',
-      BooleanExpression: '[BasicExpression][Spaces?][BooleanOperator][Spaces?][BasicExpression]',
+      BooleanExpression: '[BasicExpression][Spaces][BooleanOperator][Spaces][BasicExpression]',
       BooleanOperator: /OR|AND/,
       FieldQuery: '[Field][Spaces?][FieldOperator][Spaces?][FieldValue]',
       Field: '@[FieldName]',
@@ -19,7 +20,8 @@ module Coveo.MagicBox.Grammars {
       DoubleQuoted: '"[NotDoubleQuote]"',
       NotDoubleQuote: /[^"]*/,
       Spaces: / +/,
-      Word: /[^ \(\),\."\{}\[\]<>\+\-@\/][^ \(\),\."\{}\[\]<>\+\-\/]*/
+      Word: /[^ \(\),\."\{}\[\]<>\+\-@\/][^ \(\),\."\{}\[\]<>\+\-\/]*/,
+      Empty: /(?!.)/
     });
   }
 }

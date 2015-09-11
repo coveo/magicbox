@@ -13,8 +13,12 @@ module Coveo.MagicBox {
         }
         subResults.push(subResult);
       }
-      var expected = _.reduce(subResults, (expect:GrammarResultFail[], subResult: GrammarResultFail) => expect.concat(subResult.getExpect()), []);
-      return new GrammarResultFail(_.all(expected, (subResult)=>subResult.input == input) ? true : expected, this, input);
+      var expected = _.reduce(subResults, (expect: GrammarResultFail[], subResult: GrammarResultFail) => expect.concat(subResult.getExpect()), []);
+      if (_.all(expected, (subResult)=>subResult.input == input)) {
+        return new GrammarResultFail(null, this, input);
+      } else {
+        return new GrammarResultFail(subResults, this, input);
+      }
     }
 
     public toString() {

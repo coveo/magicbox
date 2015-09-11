@@ -5,10 +5,10 @@ module Coveo.MagicBox {
 
     public parse(input: string, end: boolean): GrammarResult {
       if (input.indexOf(this.value) != 0) {
-        return new GrammarResultFail(true, this, input);
+        return new GrammarResultFail(null, this, input);
       }
       if (end && input.length > this.value.length) {
-        return new GrammarResultFailEndOfInput([], this, input.substr(this.value.length));
+        return new GrammarResultFailEndOfInput(null, this, input.substr(this.value.length));
       }
       return new GrammarResultSuccess(this.value, this, input);
     }

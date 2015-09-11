@@ -9,10 +9,10 @@ module Coveo.MagicBox {
         groups = null;
       }
       if(groups == null){
-        return new GrammarResultFail(true, this, input);
+        return new GrammarResultFail(null, this, input);
       }
       if(end && input.length > groups[0].length){
-        return new GrammarResultFailEndOfInput([], this, input.substr(groups[0].length));
+        return new GrammarResultFailEndOfInput(null, this, input.substr(groups[0].length));
       }
       return new GrammarResultSuccess(groups[0], this, input);
     }

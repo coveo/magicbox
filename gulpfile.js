@@ -1,6 +1,6 @@
 var gulp = require('gulp');
 var ts = require('gulp-typescript');
-var less = require('gulp-less');
+var sass = require('gulp-sass');
 var jasmine = require('gulp-jasmine-phantom');
 var uglify = require('gulp-uglify');
 var concat = require('gulp-concat');
@@ -10,12 +10,12 @@ ts.reporter.longReporter();
 
 
 gulp.task('default', function () {
-  return runSequence(['buildLess', 'buildMagicBox'], ['test', 'uglify']);
+  return runSequence(['buildSass', 'buildMagicBox'], ['test', 'uglify']);
 });
 
-gulp.task('buildLess', function () {
-  return gulp.src('less/**/*.less')
-      .pipe(less())
+gulp.task('buildSass', function () {
+  return gulp.src('sass/MagicBox.scss')
+      .pipe(sass().on('error', sass.logError))
       .pipe(gulp.dest('bin/css'));
 });
 
@@ -64,7 +64,7 @@ gulp.task('test', ['buildTest'], function () {
 });
 
 gulp.task('watch', function () {
-  gulp.watch('less/**/*', ['buildLess']);
+  gulp.watch('sass/**/*', ['buildSass']);
   gulp.watch('src/**/*', ['buildMagicBox']);
   gulp.watch('test/*.ts', ['buildTest']);
 });

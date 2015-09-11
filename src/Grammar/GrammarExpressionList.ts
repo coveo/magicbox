@@ -23,7 +23,7 @@ module Coveo.MagicBox {
         return new GrammarResultSuccess(subResults, this, input);
       }
 
-      return new GrammarResultFail(subResult.fail.getExpect(), this, input);
+      return new GrammarResultFail((<GrammarResult[]>subResults).concat([subResult]), this, input);
     }
 
     public toString(){

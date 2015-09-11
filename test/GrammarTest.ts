@@ -130,7 +130,6 @@ describe('Math Grammar parse correctly', () => {
   });
   it('"1+2+"', () => {
     var result = FakeGrammar.parse('1+2+');
-    console.log(result);
     expect(result.success).toBeFalsy();
     expect(result.fail.getHumanReadableExpect()).toBe('Expected end of input but "+" found.');
   });
@@ -150,18 +149,19 @@ describe('Coveo Field Grammar parse correctly', () => {
   var coveoGrammar = Coveo.MagicBox.Grammars.CoveoField();
   it('Empty String', () => {
     var result = coveoGrammar.parse('');
-    expect(result.success).toBeFalsy();
-    expect(result.fail.getHumanReadableExpect()).toBe('Expected Expression but end of input found.');
+    expect(result.success).toBeTruthy();
   });
   it('"@fieldName"', () => {
     var result = coveoGrammar.parse('@fieldName');
     expect(result.success).toBeTruthy();
-
+  });
+  it('"@fieldName"', () => {
+    var result = coveoGrammar.parse('@fieldName');
+    expect(result.success).toBeTruthy();
   });
   it('"@fieldName="', () => {
     var result = coveoGrammar.parse('@fieldName=');
     expect(result.success).toBeFalsy();
-    console.log(result);
     expect(result.fail.getHumanReadableExpect()).toBe('Expected FieldValue but end of input found.');
   });
   it('"@fieldName=value"', () => {
@@ -194,15 +194,16 @@ describe('Coveo Field Grammar parse correctly', () => {
     var result = coveoGrammar.parse('word @fieldName =  (value  , abc)');
     expect(result.success).toBeTruthy();
   });
-  it('"word(word2"', () => {
-    var result = coveoGrammar.parse('word(word2');
+  it('"word (word2"', () => {
+    var result = coveoGrammar.parse('word (word2');
+    console.log(result)
     expect(result.success).toBeFalsy();
-    expect(result.fail.getHumanReadableExpect()).toBe('Expected BooleanOperator or end of input but "(" found.');
+    expect(result.fail.getHumanReadableExpect()).toBe('Expected ")" but end of input found.');
   });
   it('"word(word2)"', () => {
     var result = coveoGrammar.parse('word(word2)');
     expect(result.success).toBeFalsy();
-    expect(result.fail.getHumanReadableExpect()).toBe('Expected BooleanOperator or end of input but "(" found.');
+    expect(result.fail.getHumanReadableExpect()).toBe('Expected Spaces or end of input but "(" found.');
   });
   it('"word (word2)"', () => {
     var result = coveoGrammar.parse('word (word2)');
@@ -215,5 +216,11 @@ describe('Coveo Field Grammar parse correctly', () => {
   it('"(word OR (word2))"', () => {
     var result = coveoGrammar.parse('(word OR (word2))');
     expect(result.success).toBeTruthy();
+  });
+  it('"word @"', () => {
+    var result = coveoGrammar.parse('word @');
+    console.log(result);
+    expect(result.success).toBeFalsy();
+    expect(result.fail.getHumanReadableExpect()).toBe('Expected FieldName but end of input found.');
   });
 });

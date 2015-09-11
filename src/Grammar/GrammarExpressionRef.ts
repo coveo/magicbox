@@ -19,10 +19,10 @@ module Coveo.MagicBox {
           if (!end || input.length == 0) {
             return new GrammarResultSuccess('', this, input);
           } else {
-            return new GrammarResultFailEndOfInput(result.fail.getExpect(), this, input);
+            return new GrammarResultFailEndOfInput([result], this, input);
           }
         }
-        return new GrammarResultFail(result.fail.getExpect(), this, input);
+        return new GrammarResultFail([result], this, input);
       }
 
       var separator = this.separator && this.grammar.getExpression(this.separator);
@@ -54,20 +54,20 @@ module Coveo.MagicBox {
       }
 
       if (this.occurrence == '+' && subResults.length == 0) {
-        return new GrammarResultFail([subResult.fail], this, input);
+        return new GrammarResultFail([subResult], this, input);
       }
 
       if (end) {
         if (subResults.length > 0) {
           var last = _.last(subResults);
-          var subResult = last.expression.parse(last.input, true);
-          if (subResult.fail) {
-            return new GrammarResultFail(subResult.fail.getExpect(), this, input);
+          var newSubResult = last.expression.parse(last.input, true);
+          if (newSubResult.fail) {
+            return new GrammarResultFail(_.initial<GrammarResult>(subResults).concat([newSubResult, subResult]), this, input);
           }
-          subResults[subResults.length - 1] = subResult.success;
+          subResults[subResults.length - 1] = newSubResult.success;
           return new GrammarResultSuccess(subResults, this, input);
         } else if (input.length != 0) {
-          return new GrammarResultFail(false, this, input);
+          return new GrammarResultFailEndOfInput(null, this, input);
         }
       }
       return new GrammarResultSuccess(subResults, this, input);
