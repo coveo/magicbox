@@ -1,0 +1,59 @@
+/// <reference path="Grammars.ts" />
+module Coveo.MagicBox.Grammars {
+
+  export interface SubGrammar {
+    grammars?: {[id:string]:ExpressionDef};
+    expressions?: string[];
+    basicExpressions?: string[];
+    include?: SubGrammar[];
+  }
+
+  function loadSubGrammar(expressions: string[], basicExpressions: string[], grammars: {[id:string]:ExpressionDef}, subGrammar: SubGrammar) {
+    _.each(subGrammar.expressions, (expression)=> {
+      if (!_.contains(expressions, expression)){
+        expressions.push(expression);
+      }
+    });
+    _.each(subGrammar.basicExpressions, (expression)=> {
+      if (!_.contains(basicExpressions, expression)){
+        basicExpressions.push(expression);
+      }
+    });
+    _.each(subGrammar.grammars, (expressionDef: ExpressionDef, id: string)=> {
+      if (!(id in grammars)) {
+        grammars[id] = expressionDef;
+      } else {
+        if (_.isArray(grammars[id]) && _.isArray(expressionDef)) {
+          _.each(<string[]>expressionDef, (value: string)=> {
+            (<string[]>grammars[id]).push(value);
+          })
+        } else {
+          throw 'Can not merge ' + id + '(' + expressionDef.toString() + ' => ' + grammars[id].toString() + ')';
+        }
+      }
+    });
+  }
+
+  export function Expressions(...subGrammars: SubGrammar[]) {
+    var expressions: string[] = [];
+    var BasicExpression: string[] = [];
+    var grammars: {[id:string]:ExpressionDef} = {
+      Start: ['Expressions', 'Empty'],
+      Expressions: '[Expression+Spaces]',
+      Expression: expressions,
+      BasicExpression: BasicExpression,
+      Spaces: / +/,
+      Empty: /(?!.)/
+    };
+    for (var i = 0; i < subGrammars.length; i++) {
+      loadSubGrammar(expressions, BasicExpression, grammars, subGrammars[i]);
+      _.each(subGrammars[i].include, (subGrammar)=> {
+        if (!_.contains(subGrammars, subGrammar)) {
+          subGrammars.push(subGrammar);
+        }
+      });
+    }
+    expressions.push('BasicExpression');
+    return new Grammar('Start', grammars);
+  }
+}

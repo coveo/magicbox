@@ -29,8 +29,7 @@
       width: 100%;
       height: 100%;
 
-      white-space: nowrap;
-      word-break: normal;
+      white-space: pre;
       overflow: auto;
       box-sizing: border-box;
       display: block;
@@ -44,17 +43,23 @@
     .magic-box-underlay {
       color: transparent;
       overflow: hidden;
+      span {
+        display: inline-block;
+        text-indent: 0;
+      }
       .magic-box-ghost-text {
+        visibility: hidden;
         color: #cccccc;
       }
       .magic-box-error {
         border-bottom: solid red 2px;
         &.magic-box-error-empty {
           position: relative;
+          display: inline-block;
           &:before {
-            display: block;
+            display: inline-block;
             position: absolute;
-            top:0;
+            top: 0;
             left: 0;
             height: 100%;
             content: '_';
@@ -69,8 +74,13 @@
       }
     }
   }
-  &.magic-box-hasSuggestion .magic-box-suggestions {
-    display: block;
+  &.magic-box-hasFocus {
+    .magic-box-underlay .magic-box-ghost-text {
+      visibility: visible;
+    }
+    &.magic-box-hasSuggestion .magic-box-suggestions {
+      display: block;
+    }
   }
   .magic-box-suggestions {
     position: absolute;
@@ -82,6 +92,7 @@
     z-index: 1;
     display: none;
     .magic-box-suggestion {
+      font-family: arial, sans-serif;
       line-height: $lineHeight;
       padding: $padding;
       font-size: $fontSize;
@@ -132,6 +143,45 @@
     }
   }
 }
+
+@mixin highlight($color, $left, $right) {
+  position: relative;
+  &:before {
+    content: ' ';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-color: darken($color, 10%);
+    border-style: solid;
+    border-width: 1px 0;
+    background: $color;
+  }
+  @if($left){
+    &:before {
+      border-top-left-radius: 4px;
+      border-bottom-left-radius: 4px;
+      border-left-width: 1px;
+      left: -1px;
+    }
+  }
+  @if($right){
+    &:before {
+      border-top-right-radius: 4px;
+      border-bottom-right-radius: 4px;
+      border-right-width: 1px;
+      right: -1px;
+    }
+  }
+}
+
+.magic-box-underlay {
+  span[data-id="FieldQuery"][data-success="false"] {
+    @include highlight(green, true, true);
+  }
+}
+
 
 .magic-box {
   @include magic-box();

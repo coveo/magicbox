@@ -1,8 +1,11 @@
 /// <reference path="../bin/jquery.d.ts" />
 /// <reference path="../bin/underscore.d.ts" />
-/// <reference path="Grammar/Grammar.ts" />
-/// <reference path="Grammars/CoveoField.ts" />
+/// <reference path="Grammar.ts" />
+/// <reference path="Grammars/Grammars.ts" />
 module Coveo.MagicBox {
+
+  export var SuggestionsEvent = 'MagicBocSuggestions';
+
   export interface Suggestion {
     text: string;
     index?: number;
@@ -10,8 +13,8 @@ module Coveo.MagicBox {
     onSelect?: () => void;
   }
 
-  export interface SuggestionsCreator {
-    (magicBox: Instance): JQueryPromise<Suggestion[]>|Suggestion[];
+  export interface SuggestionCreator {
+    (magicbox: Instance): JQueryPromise<Suggestion[]>|Suggestion[];
   }
 
   export class Instance {
@@ -24,9 +27,9 @@ module Coveo.MagicBox {
     private text: string = '';
     private hasFocus: boolean = false;
     private hasMouseOver: boolean = false;
-    private grammarResult: GrammarResult;
+    private Result: Result;
 
-    private suggestionsCreators: SuggestionsCreator[] = [];
+    private suggestionsCreators: SuggestionCreator[] = [];
     private pendingSuggestion: JQueryDeferred<Suggestion[]>;
 
     constructor(public element: HTMLElement, public grammar: Grammar) {
@@ -63,87 +66,88 @@ module Coveo.MagicBox {
       this.setupHandler();
 
       this.updateResult();
+      this.highligth();
     }
 
     public getText() {
       return this.text;
     }
 
-    public getGrammarResult() {
-      return this.grammarResult;
+    public getResult() {
+      return this.Result;
+    }
+
+    public addSuggestionsCreator(suggestionsCreator: SuggestionCreator) {
+      this.suggestionsCreators.push(suggestionsCreator);
     }
 
     public getSuggestions(): JQueryPromise<Suggestion[]> {
       if (this.pendingSuggestion != null) {
         this.pendingSuggestion.reject('');
       }
-      var nbPending = this.suggestionsCreators.length;
+
+      var suggestions: Array<JQueryPromise<Suggestion[]>|Suggestion[]> = _.map(this.suggestionsCreators, (suggestionsCreator) => suggestionsCreator(this))
+
+      var nbPending = suggestions.length;
       var results: Suggestion[] = [];
       var deferred = this.pendingSuggestion = $.Deferred<Suggestion[]>();
-      _.each(this.suggestionsCreators, (suggestionsCreator) => {
-        $.when(suggestionsCreator(this))
-            .done((items: Suggestion[]) => {
-              if (items != null) {
-                results = results.concat(items);
+      _.each(suggestions, (suggestions: JQueryDeferred<Suggestion[]>|Suggestion[]) => {
+        $.when<Suggestion[]>(suggestions)
+          .done((items) => {
+            if (items != null) {
+              results = results.concat(items);
+            }
+          })
+          .always(() => {
+            nbPending--;
+            if (nbPending == 0) {
+              if (deferred == this.pendingSuggestion) {
+                deferred.resolve(results);
+              } else {
+                deferred.reject();
               }
-            })
-            .always(() => {
-              nbPending--;
-              if (nbPending == 0) {
-                if (deferred == this.pendingSuggestion) {
-                  deferred.resolve(results);
-                } else {
-                  deferred.reject();
-                }
-              }
-            });
+            }
+          });
       });
-      if (this.suggestionsCreators.length == 0) {
+      if (suggestions.length == 0) {
         deferred.resolve([]);
       }
       return deferred;
     }
 
-    public addAutocomplete(creator: SuggestionsCreator) {
-      this.suggestionsCreators.push(creator);
-    }
-
-    public updateAutocomplete() {
-      this.ghostTextContainer.innerHTML = '';
-
-      var ghostText = $.Deferred<string>();
-      var suggestions = this.getSuggestions();
-
-      suggestions.done((suggestions) => {
+    private updateSuggestionsDefer: number;
+    public updateSuggestions() {
+      this.updateSuggestionsDefer = this.updateSuggestionsDefer ||
+      requestAnimationFrame(() => {
+        this.ghostTextContainer.innerHTML = '';
         this.suggestions.innerHTML = '';
-        var first = _.first(suggestions);
-        if (first != null && first.text.indexOf(this.text) == 0) {
-          ghostText.resolve(first.text.substr(this.text.length));
-        } else {
-          ghostText.resolve('');
-        }
+        var suggestions = this.getSuggestions();
 
-        _.each(suggestions, (suggestion: Suggestion) => {
-          var suggestionDom = document.createElement('div');
-          suggestionDom.className = 'magic-box-suggestion';
-          suggestionDom.innerHTML = suggestion.html != null ? suggestion.html : this.highligthSuggestion(suggestion.text);
-          var onSelect = suggestion.onSelect != null ? suggestion.onSelect : () => {
-            this.setText(suggestion.text);
-            this.setCursor(suggestion.text.length);
+        suggestions.done((suggestions) => {
+          var first = _.first(suggestions);
+          var ghostText = first != null && first.text.toLowerCase().indexOf(this.text.toLowerCase()) == 0 ? first.text.substr(this.text.length) : '';
+
+          if (ghostText != null && this.getCursor() == this.text.length) {
+            this.ghostTextContainer.appendChild(document.createTextNode(ghostText))
           }
-          suggestionDom.onclick = onSelect;
-          suggestionDom['suggestion'] = suggestion;
-          this.suggestions.appendChild(suggestionDom);
+
+          _.each(suggestions, (suggestion: Suggestion) => {
+            var suggestionDom = document.createElement('div');
+            suggestionDom.className = 'magic-box-suggestion';
+            suggestionDom.innerHTML = suggestion.html != null ? suggestion.html : this.highligthSuggestion(suggestion.text);
+            var onSelect = suggestion.onSelect != null ? suggestion.onSelect : () => {
+              this.setText(suggestion.text);
+              this.setCursor(suggestion.text.length);
+            }
+            suggestionDom.onclick = onSelect;
+            suggestionDom['suggestion'] = suggestion;
+            this.suggestions.appendChild(suggestionDom);
+          });
+
+          $(this.element).toggleClass('magic-box-hasSuggestion', suggestions.length > 0);
         });
-
-        $(this.element).toggleClass('magic-box-hasSuggestion', suggestions.length > 0);
+        this.updateSuggestionsDefer = null;
       });
-
-      ghostText.done((ghostText) => {
-        if (ghostText != null && this.getCursor() == this.text.length) {
-          this.ghostTextContainer.appendChild(document.createTextNode(ghostText))
-        }
-      })
     }
 
     public highligthSuggestion(text: string) {
@@ -204,7 +208,7 @@ module Coveo.MagicBox {
       return this.input.selectionStart
     }
 
-    public resultAtCursor(index = this.getCursor(), result = this.grammarResult): GrammarResultSuccess[] {
+    public resultAtCursor(index = this.getCursor(), result = this.Result): ResultSuccess[] {
       if (result.success) {
         if (index < 0) {
           return null;
@@ -232,30 +236,32 @@ module Coveo.MagicBox {
     }
 
     private setupHandler() {
-      $(this.input)
-          .blur(() => this.blur())
-          .focus(() => this.focus())
-          .keydown((e) => this.keydown(e))
-          .keyup((e) => this.keyup(e))
-          .mouseenter(() => this.mouseenter())
-          .mouseleave(() => this.mouseleave())
-          .scroll(() =>
-              this.updateScroll(false)
-      )
+      $(this.input).blur(() => this.blur())
+        .focus(() => this.focus())
+        .click((e) => this.click())
+        .keydown((e) => this.keydown(e))
+        .keyup((e) => this.keyup(e))
+        .mouseenter(() => this.mouseenter())
+        .mouseleave(() => this.mouseleave())
+        .scroll(() => this.updateScroll(false))
     }
 
     private blur() {
       this.hasFocus = false;
       setTimeout(() => {
-        if (!this.hasFocus) {
-          this.suggestions.innerHTML = '';
-        }
+        $(this.element).toggleClass('magic-box-hasFocus', this.hasFocus);
       }, 300);
     }
 
     private focus() {
       this.hasFocus = true;
+      $(this.element).addClass('magic-box-hasFocus');
+      this.updateSuggestions();
       this.updateScroll();
+    }
+
+    private click() {
+      this.updateSuggestions();
     }
 
     private keydown(e: JQueryKeyEventObject) {
@@ -285,6 +291,12 @@ module Coveo.MagicBox {
         case 38:
           this.upPress();
           break;
+        // Left
+        // Right
+        case 37:
+        case 39:
+          this.updateSuggestions();
+          break;
         // Down
         case 40:
           this.downPress();
@@ -312,38 +324,25 @@ module Coveo.MagicBox {
 
     private highligth() {
       this.highlightDefer = this.highlightDefer ||
-          requestAnimationFrame(() => {
-            this.highlightContainer.innerHTML = '';
-            if (this.grammarResult.success) {
-              this.highlightContainer.appendChild(this.grammarResult.success.toHtmlElement());
-            } else {
-              var expects = this.grammarResult.fail.getBestExpect();
-              var input = expects.length > 0 ? _.last(expects).input : '';
-              var text = this.getText();
-              var correct = document.createElement('span');
-              correct.appendChild(document.createTextNode(text.substr(0, text.length - input.length)));
-              this.highlightContainer.appendChild(correct);
-              var error = document.createElement('span');
-              error.className = 'magic-box-error';
-              error.appendChild(document.createTextNode(input));
-              error.className = 'magic-box-error' + (input.length > 0 ? '' : ' magic-box-error-empty');
-              this.highlightContainer.appendChild(error);
-            }
-            this.updateAutocomplete();
-            this.updateScroll(false);
-            this.highlightDefer = null;
-          })
+      requestAnimationFrame(() => {
+        this.highlightContainer.innerHTML = '';
+        this.highlightContainer.appendChild(this.Result.toHtmlElement());
+        console.log(this.highlightContainer)
+        this.updateScroll(false);
+        this.highlightDefer = null;
+      })
     }
 
     private updateScrollDefer: number;
-
     private updateScroll(defer = true) {
       var callback = () => {
-        this.underlay.style.visibility = 'hidden';
-        this.underlay.scrollLeft = this.input.scrollLeft;
-        this.underlay.scrollTop = this.input.scrollTop;
-        this.underlay.style.visibility = 'visible';
-        this.updateScrollDefer = null;
+        if (this.underlay.clientWidth < this.underlay.scrollWidth && this.hasMouseOver) {
+          this.underlay.style.visibility = 'hidden';
+          this.underlay.scrollLeft = this.input.scrollLeft;
+          this.underlay.scrollTop = this.input.scrollTop;
+          this.underlay.style.visibility = 'visible';
+          this.updateScrollDefer = null;
+        }
         if (this.hasFocus) {
           this.updateScroll();
         }
@@ -361,13 +360,14 @@ module Coveo.MagicBox {
         this.text = text;
         this.updateResult();
         this.highligth();
+        this.updateSuggestions();
       }
     }
 
-    private updateResult(){
-      this.grammarResult = this.grammar.parse(this.text);
-      if (this.grammarResult.fail) {
-        $(this.expectMessage).attr('title', this.grammarResult.fail.getHumanReadableExpect());
+    private updateResult() {
+      this.Result = this.grammar.parse(this.text);
+      if (this.Result.fail) {
+        $(this.expectMessage).attr('title', this.Result.fail.getHumanReadableExpect());
       } else {
         $(this.expectMessage).attr('title', null);
       }
@@ -384,4 +384,7 @@ module Coveo.MagicBox {
     }
     return setTimeout(callback);
   }
+}
+module Coveo {
+  export var $: JQueryStatic = Coveo['$'] || window['$'];
 }

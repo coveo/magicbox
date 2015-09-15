@@ -2,49 +2,49 @@
 /// <reference path="../bin/MagicBox.d.ts" />
 
 describe('Grammar Expression Builder build expression of type', () => {
-  it('GrammarExpressionConstant', () => {
+  it('ExpressionConstant', () => {
     var exp = Coveo.MagicBox.Grammar.buildExpression('foo', 'id', null);
-    expect(exp).toEqual(jasmine.any(Coveo.MagicBox.GrammarExpressionConstant));
+    expect(exp).toEqual(jasmine.any(Coveo.MagicBox.ExpressionConstant));
   });
 
-  it('GrammarExpressionRef', () => {
-    var exp = <Coveo.MagicBox.GrammarExpressionRef>Coveo.MagicBox.Grammar.buildExpression('[foo]', 'id', null);
-    expect(exp).toEqual(jasmine.any(Coveo.MagicBox.GrammarExpressionRef));
+  it('ExpressionRef', () => {
+    var exp = <Coveo.MagicBox.ExpressionRef>Coveo.MagicBox.Grammar.buildExpression('[foo]', 'id', null);
+    expect(exp).toEqual(jasmine.any(Coveo.MagicBox.ExpressionRef));
     expect(exp.ref).toBe('foo');
     expect(exp.occurrence).toBeUndefined();
     expect(exp.separator).toBeUndefined();
 
-    exp = <Coveo.MagicBox.GrammarExpressionRef>Coveo.MagicBox.Grammar.buildExpression('[foo?]', 'id', null);
-    expect(exp).toEqual(jasmine.any(Coveo.MagicBox.GrammarExpressionRef));
+    exp = <Coveo.MagicBox.ExpressionRef>Coveo.MagicBox.Grammar.buildExpression('[foo?]', 'id', null);
+    expect(exp).toEqual(jasmine.any(Coveo.MagicBox.ExpressionRef));
     expect(exp.ref).toBe('foo');
     expect(exp.occurrence).toBe('?');
     expect(exp.separator).toBeUndefined();
 
-    exp = <Coveo.MagicBox.GrammarExpressionRef>Coveo.MagicBox.Grammar.buildExpression('[foo*bar]', 'id', null);
-    expect(exp).toEqual(jasmine.any(Coveo.MagicBox.GrammarExpressionRef));
+    exp = <Coveo.MagicBox.ExpressionRef>Coveo.MagicBox.Grammar.buildExpression('[foo*bar]', 'id', null);
+    expect(exp).toEqual(jasmine.any(Coveo.MagicBox.ExpressionRef));
     expect(exp.ref).toBe('foo');
     expect(exp.occurrence).toBe('*');
     expect(exp.separator).toBe('bar');
   });
 
-  it('GrammarExpressionOptions', () => {
-    var exp = <Coveo.MagicBox.GrammarExpressionOptions>Coveo.MagicBox.Grammar.buildExpression(['foo', 'bar'], 'id', null);
-    expect(exp).toEqual(jasmine.any(Coveo.MagicBox.GrammarExpressionOptions));
+  it('ExpressionOptions', () => {
+    var exp = <Coveo.MagicBox.ExpressionOptions>Coveo.MagicBox.Grammar.buildExpression(['foo', 'bar'], 'id', null);
+    expect(exp).toEqual(jasmine.any(Coveo.MagicBox.ExpressionOptions));
     expect(exp.parts.length).toBe(2);
   });
 
-  it('GrammarExpressionList', () => {
+  it('ExpressionList', () => {
     // this generate a list because at [ he do not know if it will be a ref start
     var exp1 = Coveo.MagicBox.Grammar.buildExpression('foo[bar', 'id', null);
-    expect(exp1).toEqual(jasmine.any(Coveo.MagicBox.GrammarExpressionList));
+    expect(exp1).toEqual(jasmine.any(Coveo.MagicBox.ExpressionList));
 
     var exp2 = Coveo.MagicBox.Grammar.buildExpression('foo[bar]', 'id', null);
-    expect(exp2).toEqual(jasmine.any(Coveo.MagicBox.GrammarExpressionList));
+    expect(exp2).toEqual(jasmine.any(Coveo.MagicBox.ExpressionList));
   });
 
-  it('GrammarExpressionRegExp', () => {
+  it('ExpressionRegExp', () => {
     var exp = Coveo.MagicBox.Grammar.buildExpression(/foo/, 'id', null);
-    expect(exp).toEqual(jasmine.any(Coveo.MagicBox.GrammarExpressionRegExp));
+    expect(exp).toEqual(jasmine.any(Coveo.MagicBox.ExpressionRegExp));
   });
 });
 
@@ -146,7 +146,7 @@ describe('Math Grammar parse correctly', () => {
 
 
 describe('Coveo Field Grammar parse correctly', () => {
-  var coveoGrammar = Coveo.MagicBox.Grammars.CoveoField();
+  var coveoGrammar = Coveo.MagicBox.Grammars.Expressions(Coveo.MagicBox.Grammars.Complete);
   it('Empty String', () => {
     var result = coveoGrammar.parse('');
     expect(result.success).toBeTruthy();

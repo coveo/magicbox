@@ -20,27 +20,6 @@
       margin: 10% auto;
     }
   </style>
-  <script>
-    var access_token = '7b9b9300-3901-437b-bafd-51ae596f1b16';
-    
-    // FieldAddon
-    var fields;
-    var getFields = function() {
-          if (fields == null) {
-            fields = $.get('https://cloudplatform.coveo.com/rest/search/fields', {
-              access_token: access_token
-            });
-          }
-          return fields;
-        };
-    var getFieldValue = function() {
-            fields = $.get('https://cloudplatform.coveo.com/rest/search/fields', {
-              access_token: access_token
-            });
-          return fields;
-        };
-  
-  </script>
 </head>
 
 <body>
@@ -50,8 +29,12 @@
   <script>
     var magicbox;
     $(function () {
-        magicbox = new Coveo.MagicBox.create($('#mb').get(0), Coveo.MagicBox.Grammars.CoveoField());
+        magicbox = new Coveo.MagicBox.create($('#mb').get(0), Coveo.MagicBox.Grammars.Expressions(Coveo.MagicBox.Grammars.Complete));
+        magicbox.addSuggestionsCreator(function (args) {
+            return [{text:'Abc'},{text:'Def'}, {text:'Ghi'}];
+        })
     })
+
   </script>
 </body>
 

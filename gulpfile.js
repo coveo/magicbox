@@ -22,6 +22,7 @@ gulp.task('buildSass', function () {
 gulp.task('buildMagicBox', ['copyLib'], function () {
   var result = gulp.src('src/MagicBox.ts')
       .pipe(ts({
+        sortOutput: true,
         noEmitOnError: true,
         declaration: true,
         out: 'bin/MagicBox.js'

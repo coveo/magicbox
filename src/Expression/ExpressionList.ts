@@ -1,13 +1,14 @@
+/// <reference path="../Grammar.ts" />
 module Coveo.MagicBox {
-  export class GrammarExpressionList implements GrammarExpression {
-    constructor(private parts: GrammarExpression[], public id: string) {
+  export class ExpressionList implements Expression {
+    constructor(private parts: Expression[], public id: string) {
       if (parts.length == 0) {
         throw JSON.stringify(id) + ' should have at least 1 parts';
       }
     }
 
-    parse(input: string, end: boolean): GrammarResult {
-      var subResults: GrammarResultSuccess[] = [];
+    parse(input: string, end: boolean): Result {
+      var subResults: ResultSuccess[] = [];
       var subInput = input;
       for (var i = 0; i < this.parts.length; i++) {
         var part = this.parts[i];
@@ -20,10 +21,10 @@ module Coveo.MagicBox {
         }
       }
       if (subResult.success) {
-        return new GrammarResultSuccess(subResults, this, input);
+        return new ResultSuccess(subResults, this, input);
       }
 
-      return new GrammarResultFail((<GrammarResult[]>subResults).concat([subResult]), this, input);
+      return new ResultFail((<Result[]>subResults).concat([subResult]), this, input);
     }
 
     public toString(){

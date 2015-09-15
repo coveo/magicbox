@@ -1,38 +1,39 @@
+/// <reference path="../Grammar.ts" />
 module Coveo.MagicBox {
-  export class GrammarExpressionRef implements GrammarExpression {
-    constructor(public ref: string, public occurrence: string, public separator: string, public id: string, public grammar: Grammar) {
+  export class ExpressionRef implements Expression {
+    constructor(public ref: string, public occurrence: string|number, public separator: string, public id: string, public grammar: Grammar) {
     }
 
-    parse(input: string, end: boolean): GrammarResult {
+    parse(input: string, end: boolean): Result {
       var ref = this.grammar.getExpression(this.ref);
       if (ref == null) {
-        throw 'GrammarExpression not found:' + this.ref
+        throw 'Expression not found:' + this.ref
       }
 
       if (this.occurrence == '?' || this.occurrence == null) {
         var result = ref.parse(input, end);
         var successResult = result.success;
         if (successResult) {
-          return new GrammarResultSuccess([successResult], this, input);
+          return new ResultSuccess([successResult], this, input);
         }
         if (this.occurrence == '?') {
           if (!end || input.length == 0) {
-            return new GrammarResultSuccess('', this, input);
+            return new ResultSuccess('', this, input);
           } else {
-            return new GrammarResultFailEndOfInput([result], this, input);
+            return new ResultFailEndOfInput([result], this, input);
           }
         }
-        return new GrammarResultFail([result], this, input);
+        return new ResultFail([result], this, input);
       }
 
       var separator = this.separator && this.grammar.getExpression(this.separator);
       if (this.separator != null && separator == null) {
-        throw 'GrammarExpression not found:' + this.separator
+        throw 'Expression not found:' + this.separator
       }
 
       // * or +
-      var subResult: GrammarResult;
-      var subResults: GrammarResultSuccess[] = [];
+      var subResult: Result;
+      var subResults: ResultSuccess[] = [];
       var subInput = input;
       do {
         subResult = ref.parse(subInput, false);
@@ -53,8 +54,12 @@ module Coveo.MagicBox {
         subResults.pop();
       }
 
+      if (_.isNumber(this.occurrence) && ((this.separator == null && subResults.length < this.occurrence) || (this.separator != null && (subResults.length + 1) / 2 < this.occurrence))) {
+        return new ResultFail([subResult], this, input);
+      }
+
       if (this.occurrence == '+' && subResults.length == 0) {
-        return new GrammarResultFail([subResult], this, input);
+        return new ResultFail([subResult], this, input);
       }
 
       if (end) {
@@ -62,15 +67,15 @@ module Coveo.MagicBox {
           var last = _.last(subResults);
           var newSubResult = last.expression.parse(last.input, true);
           if (newSubResult.fail) {
-            return new GrammarResultFail(_.initial<GrammarResult>(subResults).concat([newSubResult, subResult]), this, input);
+            return new ResultFail(_.initial<Result>(subResults).concat([newSubResult, subResult]), this, input);
           }
           subResults[subResults.length - 1] = newSubResult.success;
-          return new GrammarResultSuccess(subResults, this, input);
+          return new ResultSuccess(subResults, this, input);
         } else if (input.length != 0) {
-          return new GrammarResultFailEndOfInput(null, this, input);
+          return new ResultFailEndOfInput(null, this, input);
         }
       }
-      return new GrammarResultSuccess(subResults, this, input);
+      return new ResultSuccess(subResults, this, input);
     }
 
     public toString() {
