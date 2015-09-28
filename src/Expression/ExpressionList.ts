@@ -8,26 +8,24 @@ module Coveo.MagicBox {
     }
 
     parse(input: string, end: boolean): Result {
-      var subResults: ResultSuccess[] = [];
+      var subResults: Result[] = [];
+      var subResult: Result;
       var subInput = input;
+      
       for (var i = 0; i < this.parts.length; i++) {
         var part = this.parts[i];
-        var subResult = part.parse(subInput, end && i == this.parts.length - 1);
-        if (subResult.success) {
-          subResults.push(subResult.success);
-          subInput = subInput.substr(subResult.success.getLength());
-        } else {
+        subResult = part.parse(subInput, end && i == this.parts.length - 1);
+        subResults.push(subResult);
+        if (!subResult.isSuccess()) {
           break;
+        } else {
+          subInput = subInput.substr(subResult.getLength());
         }
       }
-      if (subResult.success) {
-        return new ResultSuccess(subResults, this, input);
-      }
-
-      return new ResultFail((<Result[]>subResults).concat([subResult]), this, input);
+      return new Result(subResults, this, input);
     }
 
-    public toString(){
+    public toString() {
       return this.id;
     }
   }

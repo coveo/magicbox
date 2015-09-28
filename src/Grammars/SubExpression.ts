@@ -3,7 +3,7 @@ module Coveo.MagicBox.Grammars {
   export var SubExpression:SubGrammar = {
     basicExpressions: ['SubExpression'],
     grammars: {
-      SubExpression: '([Spaces?][Expression][Spaces?])'
+      SubExpression: '([Spaces?][Expressions][Spaces?])'
     }
   }
 }

@@ -1,7 +1,7 @@
 /// <reference path="../Grammar.ts" />
 module Coveo.MagicBox {
   export class ExpressionRef implements Expression {
-    constructor(public ref: string, public occurrence: string|number, public separator: string, public id: string, public grammar: Grammar) {
+    constructor(public ref: string, public occurrence: string|number, public id: string, public grammar: Grammar) {
     }
 
     parse(input: string, end: boolean): Result {
@@ -9,73 +9,65 @@ module Coveo.MagicBox {
       if (ref == null) {
         throw 'Expression not found:' + this.ref
       }
-
       if (this.occurrence == '?' || this.occurrence == null) {
-        var result = ref.parse(input, end);
-        var successResult = result.success;
-        if (successResult) {
-          return new ResultSuccess([successResult], this, input);
-        }
-        if (this.occurrence == '?') {
-          if (!end || input.length == 0) {
-            return new ResultSuccess('', this, input);
-          } else {
-            return new ResultFailEndOfInput([result], this, input);
+        return this.parseOnce(input, end, ref);
+      } else {
+        return this.parseMany(input, end, ref);
+      };
+    }
+
+    parseOnce(input: string, end: boolean, ref: Expression): Result {
+      var refResult = ref.parse(input, end);
+      if (!refResult.isSuccess() && this.occurrence == '?') {
+        if (end) {
+          // if end was found
+          if (input.length == 0) {
+            return new Result('', this, input);
           }
+          // if end was not found and all error expression are EndOfInput, reparse with end = false.
+          if (_.all(refResult.getBestExpect(), (expect) => expect.expression == ExpressionEndOfInput)) {
+            return new EndOfInputResult(ref.parse(input, false));
+          }
+          return refResult;
         }
-        return new ResultFail([result], this, input);
+        return new Result('', this, input);
       }
+      return new Result([refResult], this, input);
+    }
 
-      var separator = this.separator && this.grammar.getExpression(this.separator);
-      if (this.separator != null && separator == null) {
-        throw 'Expression not found:' + this.separator
-      }
-
-      // * or +
+    parseMany(input: string, end: boolean, ref: Expression) {
+      var subResults: Result[] = [];
       var subResult: Result;
-      var subResults: ResultSuccess[] = [];
       var subInput = input;
+      var success: boolean;
+
+      // try to parse until it do not match
       do {
         subResult = ref.parse(subInput, false);
-        if (subResult.success) {
-          subResults.push(subResult.success);
-          subInput = subInput.substr(subResult.success.getLength());
-          if (separator != null) {
-            subResult = separator.parse(subInput, false);
-            if (subResult.success) {
-              subResults.push(subResult.success);
-              subInput = subInput.substr(subResult.success.getLength());
-            }
-          }
+        success = subResult.isSuccess();
+        if (success) {
+          subResults.push(subResult);
+          subInput = subInput.substr(subResult.getLength());
         }
-      } while (subResult.success);
+      } while (success);
+      
+      // minimal occurance of a ref
+      var requiredOccurance = _.isNumber(this.occurrence) ? <number>this.occurrence : (this.occurrence == '+' ? 1 : 0);
 
-      if (subResults.length > 1 && _.last(subResults).expression == separator) {
-        subResults.pop();
-      }
-
-      if (_.isNumber(this.occurrence) && ((this.separator == null && subResults.length < this.occurrence) || (this.separator != null && (subResults.length + 1) / 2 < this.occurrence))) {
-        return new ResultFail([subResult], this, input);
-      }
-
-      if (this.occurrence == '+' && subResults.length == 0) {
-        return new ResultFail([subResult], this, input);
-      }
-
-      if (end) {
+      // if the minimal occurance is not reached add the fail result to the list
+      if (subResults.length < requiredOccurance) {
+        subResults.push(subResult);
+      } else if (end) {
+        // if there is at least one match, check if the last match is at the end 
         if (subResults.length > 0) {
-          var last = _.last(subResults);
+          var last = subResults.pop();
           var newSubResult = last.expression.parse(last.input, true);
-          if (newSubResult.fail) {
-            return new ResultFail(_.initial<Result>(subResults).concat([newSubResult, subResult]), this, input);
-          }
-          subResults[subResults.length - 1] = newSubResult.success;
-          return new ResultSuccess(subResults, this, input);
+          subResults.push(newSubResult);
         } else if (input.length != 0) {
-          return new ResultFailEndOfInput(null, this, input);
+          return new EndOfInputResult(new Result(subResults, this, input));
         }
       }
-      return new ResultSuccess(subResults, this, input);
+      return new Result(subResults, this, input);
     }
 
     public toString() {

@@ -5,16 +5,16 @@ module Coveo.MagicBox {
     }
 
     public parse(input: string, end: boolean): Result {
-      if (input.indexOf(this.value) != 0) {
-        return new ResultFail(null, this, input);
+      // the value must be at the start of the input
+      var success = input.indexOf(this.value) == 0;
+      var result = new Result(success ? this.value : null, this, input);
+      if (success && end && input.length > this.value.length) {
+        return new EndOfInputResult(result);
       }
-      if (end && input.length > this.value.length) {
-        return new ResultFailEndOfInput(null, this, input.substr(this.value.length));
-      }
-      return new ResultSuccess(this.value, this, input);
+      return result;
     }
 
-    public toString(){
+    public toString() {
       return this.value;
     }
   }

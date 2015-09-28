@@ -5,11 +5,12 @@ module Coveo.MagicBox.Grammars {
     grammars: {
       FieldQuery: '[Field][Spaces?][FieldOperator][Spaces?][FieldValue]',
       Field: '@[FieldName]',
-      FieldName: /[a-zA-Z][a-zA-Z0-9\.]*/,
+      FieldName: /[a-zA-Z][a-zA-Z0-9\.\_]*/,
       FieldOperator: /==|=|<>/,
       FieldValue: ['FieldValueList', 'FieldValueString'],
       FieldValueString: ['DoubleQuoted', 'Word'],
-      FieldValueList: '([FieldValueString+FieldValueSeparator])',
+      FieldValueList: '([FieldValueStringList*][FieldValueString])',
+      FieldValueStringList: '[FieldValueString][FieldValueSeparator]',
       FieldValueSeparator: / *, */,
     },
     include: [Basic]

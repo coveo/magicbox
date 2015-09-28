@@ -29,10 +29,14 @@
   <script>
     var magicbox;
     $(function () {
-        magicbox = new Coveo.MagicBox.create($('#mb').get(0), Coveo.MagicBox.Grammars.Expressions(Coveo.MagicBox.Grammars.Complete));
-        magicbox.addSuggestionsCreator(function (args) {
-            return [{text:'Abc'},{text:'Def'}, {text:'Ghi'}];
-        })
+        magicbox = new Coveo.MagicBox.create($('#mb').get(0), Coveo.MagicBox.Grammars.ExpressionsGrammar(Coveo.MagicBox.Grammars.Complete));
+        magicbox.getSuggestions = function () {
+          var d = $.Deferred();
+          setTimeout(function(){
+            d.resolve([{seperator:'seperator'},{text:'Abc'},{text:'Def'}, {text:'Ghi'}]);
+          }, 100);
+          return [d];
+        }
     })
 
   </script>

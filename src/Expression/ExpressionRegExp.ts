@@ -4,21 +4,19 @@ module Coveo.MagicBox {
     constructor(public value: RegExp, public id: string, grammar: Grammar) {
     }
 
-    parse(input: string, end:boolean):Result {
+    parse(input: string, end: boolean): Result {
       var groups = input.match(this.value);
       if (groups != null && groups.index != 0) {
         groups = null;
       }
-      if(groups == null){
-        return new ResultFail(null, this, input);
+      var result = new Result( groups != null ? groups[0] : null , this, input);
+      if (result.isSuccess() && end && input.length > result.value.length) {
+        return new EndOfInputResult(result);
       }
-      if(end && input.length > groups[0].length){
-        return new ResultFailEndOfInput(null, this, input.substr(groups[0].length));
-      }
-      return new ResultSuccess(groups[0], this, input);
+      return result;
     }
 
-    public toString(){
+    public toString() {
       return this.id;
     }
   }

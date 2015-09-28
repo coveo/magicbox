@@ -5,20 +5,15 @@ module Coveo.MagicBox {
     }
 
     parse(input: string, end: boolean): Result {
-      var subResults: Result[] = [];
+      var failAttempt: Result[] = [];
       for (var i = 0; i < this.parts.length; i++) {
         var subResult = this.parts[i].parse(input, end);
-        if (subResult.success) {
-          return new ResultSuccess([subResult.success], this, input);
+        if (subResult.isSuccess()) {
+          return new OptionResult(subResult, this, input, failAttempt);
         }
-        subResults.push(subResult);
+        failAttempt.push(subResult);
       }
-      var expected = _.reduce(subResults, (expect: ResultFail[], subResult: ResultFail) => expect.concat(subResult.getExpect()), []);
-      if (_.all(expected, (subResult)=>subResult.input == input)) {
-        return new ResultFail(null, this, input);
-      } else {
-        return new ResultFail(subResults, this, input);
-      }
+      return new OptionResult(null, this, input, failAttempt);
     }
 
     public toString() {
