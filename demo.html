@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>SmartUi</title>
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0,  maximum-scale=1.0, user-scalable=0">
+
+  <script type="text/javascript" src="node_modules/jquery/dist/jquery.js"></script>
+  <script type="text/javascript" src="node_modules/underscore/underscore.js"></script>
+  <script type="application/javascript" src="bin/MagicBox.js"></script>
+  <link rel="stylesheet" type="text/css" href="bin/css/MagicBox.css" />
+  <style>
+    body {
+      background: #EEEEEE;
+    }
+    
+    .wrapper {
+      max-width: 300px;
+      margin: 10% auto;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrapper">
+    <div id="mb"></div>
+  </div>
+  <script>
+    var magicbox;
+    $(function () {
+        magicbox = new Coveo.MagicBox.create($('#mb').get(0), Coveo.MagicBox.Grammars.ExpressionsGrammar(Coveo.MagicBox.Grammars.Complete));
+        magicbox.getSuggestions = function () {
+          var d = $.Deferred();
+          setTimeout(function(){
+            d.resolve([{seperator:'seperator'},{text:'Abc'},{text:'Def'}, {text:'Ghi'}]);
+          }, 100);
+          return [d];
+        }
+    })
+
+  </script>
+</body>
+
+</html>

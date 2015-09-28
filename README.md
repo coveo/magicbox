@@ -1,2 +1,50 @@
-Magic Box
-========
+# Magic Box
+## Grammar
+```
+new Grammar('Start', {
+    Start: ...,
+    ...
+})
+```
+## Expression
+### RegExp Expression
+```
+/myRegex/
+```
+### Options Expression
+```
+['Option1', 'Option2', 'Option3']
+```
+### Ref Expression
+Those can be add to the List Expression
+
+#### Once
+```
+[referance]
+```
+
+#### Optionnal
+```
+[referance?]
+```
+
+#### Zero or many time
+```
+[referance*]
+```
+
+#### One or many time
+```
+[referance+]
+```
+
+### List Expression
+```
+"constant [ref]"
+```
+
+### Function Expression
+IF YOU ARE NOT SURE IF YOU NEED THIS, YOU DON'T
+```
+(input: string, end: boolean, grammar:Grammar)=>Result
+```

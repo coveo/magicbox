@@ -1,0 +1,21 @@
+/// <reference path="../Grammar.ts" />
+module Coveo.MagicBox {
+  export class ExpressionConstant implements Expression {
+    constructor(public value: string, public id: string) {
+    }
+
+    public parse(input: string, end: boolean): Result {
+      // the value must be at the start of the input
+      var success = input.indexOf(this.value) == 0;
+      var result = new Result(success ? this.value : null, this, input);
+      if (success && end && input.length > this.value.length) {
+        return new EndOfInputResult(result);
+      }
+      return result;
+    }
+
+    public toString() {
+      return this.value;
+    }
+  }
+}
