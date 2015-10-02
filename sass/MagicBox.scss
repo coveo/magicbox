@@ -20,7 +20,7 @@
     position: relative;
     .magic-box-underlay, > input {
       color: $grey-900;
-      
+
       text-align: left;
 
       padding: $padding 0;
@@ -81,7 +81,7 @@
       }
     }
   }
-  
+
   .magic-box-clear {
     position: relative;
     float: right;
@@ -109,13 +109,13 @@
       left: 0;
     }
   }
-  
+
   &.magic-box-notEmpty {
     .magic-box-clear {
       width: $height;
     }
   }
-  
+
   &.magic-box-hasFocus {
     .magic-box-underlay .magic-box-ghost-text {
       visibility: visible;
@@ -187,11 +187,16 @@
       overflow: hidden;
       text-overflow: ellipsis;
       border-top: 1px solid $grey-50;
-      
+
+      .magic-box-hightlight {
+        font-weight: bold;
+        color: $black;
+      }
+
       &:first-child {
         border-top: none;
       }
-      
+
       &.magic-box-selected {
         background: $cyan-50 !important;
       }

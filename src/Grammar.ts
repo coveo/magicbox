@@ -3,6 +3,7 @@
 /// <reference path="Result/Result.ts" />
 /// <reference path="Result/EndOfInputResult.ts" />
 /// <reference path="Result/OptionResult.ts" />
+/// <reference path="Result/RefResult.ts" />
 
 /// <reference path="Expression/Expression.ts" />
 /// <reference path="Expression/ExpressionConstant.ts" />
@@ -59,7 +60,7 @@ module Coveo.MagicBox {
         return new ExpressionRegExp(<RegExp>value, id, grammar);
       }
       if (_.isFunction(value)) {
-        return new ExpressionFunction(<{ (input: string, end: boolean, grammar?: Grammar): Result }>value, id, grammar);
+        return new ExpressionFunction(<ExpressionFunctionArgument>value, id, grammar);
       }
       throw 'Invalid Expression: ' + value;
     }
@@ -96,4 +97,4 @@ module Coveo.MagicBox {
 
     static spliter = /\[(\w+)(\*|\+|\?|\{([1-9][0-9]*)\})?\]|(.[^\[]*)/;
   }
-}
+}

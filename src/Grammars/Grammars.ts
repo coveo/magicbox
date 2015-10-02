@@ -4,9 +4,12 @@
 
 /// <reference path="Basic.ts" />
 
-/// <reference path="Boolean.ts" />
 /// <reference path="SubExpression.ts" />
 
 /// <reference path="Field.ts" />
+
+/// <reference path="QueryExtension.ts" />
+
+/// <reference path="NestedQuery.ts" />
 
 /// <reference path="Complete.ts" />

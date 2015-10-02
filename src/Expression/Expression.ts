@@ -1,7 +1,7 @@
 /// <reference path="../Grammar.ts" />
 
 module Coveo.MagicBox {
-  export type ExpressionDef = RegExp|string|string[]|{ (input: string, end: boolean, grammar: Grammar): Result };
+  export type ExpressionDef = RegExp|string|string[]|ExpressionFunctionArgument;
 
   export interface Expression {
     id: string;

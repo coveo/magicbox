@@ -1,6 +1,7 @@
 /// <reference path="../bin/jquery.d.ts" />
 /// <reference path="../bin/underscore.d.ts" />
 /// <reference path="Grammar.ts" />
+/// <reference path="Utils.ts"/>
 /// <reference path="Grammars/Grammars.ts" />
 module Coveo.MagicBox {
 
@@ -89,6 +90,10 @@ module Coveo.MagicBox {
       return this.result;
     }
 
+    public getDisplayedResult() {
+      return this.displayedResult;
+    }
+
     private getSuggestionsPromise(): JQueryPromise<Suggestion[]> {
       if (this.pendingSuggestion != null) {
         this.pendingSuggestion.reject('');
@@ -123,62 +128,69 @@ module Coveo.MagicBox {
       return deferred;
     }
 
+    private lastSuccestion: { text: string; cursor: number };
     private updateSuggestionsDefer: number;
     public updateSuggestions() {
-      this.ghostTextContainer.innerHTML = '';
-      var suggestions = this.getSuggestionsPromise();
-      this.suggestions.className = "magic-box-suggestions magic-box-suggestions-loading";
-      suggestions.done((suggestions) => {
-        this.suggestions.innerHTML = '';
-        this.suggestions.className = "magic-box-suggestions";
-        var first = _.find(suggestions, (suggestion) => suggestion.text != null);
-        var ghostText = first != null && first.text.toLowerCase().indexOf(this.text.toLowerCase()) == 0 ? first.text.substr(this.text.length) : '';
-
-        if (ghostText != null && this.getCursor() == this.text.length) {
-          this.ghostTextContainer.appendChild(document.createTextNode(ghostText))
+      if (this.getSuggestions != null && (this.lastSuccestion == null || this.lastSuccestion.text != this.getText() || this.lastSuccestion.cursor != this.getCursor())) {
+        this.lastSuccestion = {
+          text: this.getText(),
+          cursor: this.getCursor()
         }
+        this.ghostTextContainer.innerHTML = '';
+        var suggestions = this.getSuggestionsPromise();
+        this.suggestions.className = "magic-box-suggestions magic-box-suggestions-loading";
+        suggestions.done((suggestions) => {
+          this.suggestions.innerHTML = '';
+          this.suggestions.className = "magic-box-suggestions";
+          var first = _.find(suggestions, (suggestion) => suggestion.text != null);
+          var ghostText = first != null && first.text.toLowerCase().indexOf(this.text.toLowerCase()) == 0 ? first.text.substr(this.text.length) : '';
 
-        _.each(suggestions, (suggestion: Suggestion) => {
-          if (!suggestion.dom) {
-            suggestion.dom = document.createElement('div');
-            suggestion.dom.className = 'magic-box-suggestion';
-            if (suggestion.html != null) {
-              suggestion.dom.innerHTML = suggestion.html;
-            } else if (suggestion.text != null) {
-              suggestion.dom.appendChild(document.createTextNode(suggestion.text))
-            } else if (suggestion.seperator != null) {
-              suggestion.dom.className = 'magic-box-suggestion-seperator';
-              var suggestionLabel = document.createElement('div');
-              suggestionLabel.className = 'magic-box-suggestion-seperator-label';
-              suggestionLabel.appendChild(document.createTextNode(suggestion.seperator))
-              suggestion.dom.appendChild(suggestionLabel)
-            }
+          if (ghostText != null && this.getCursor() == this.text.length) {
+            this.ghostTextContainer.appendChild(document.createTextNode(ghostText))
           }
-          if (suggestion.onSelect == null && suggestion.text != null) {
-            suggestion.onSelect = () => {
-              this.setText(suggestion.text);
-              this.setCursor(suggestion.text.length);
-              if (this.suggestionSelect != null) {
-                this.suggestionSelect(suggestion);
+
+          _.each(suggestions, (suggestion: Suggestion) => {
+            if (!suggestion.dom) {
+              suggestion.dom = document.createElement('div');
+              suggestion.dom.className = 'magic-box-suggestion';
+              if (suggestion.html != null) {
+                suggestion.dom.innerHTML = suggestion.html;
+              } else if (suggestion.text != null) {
+                suggestion.dom.appendChild(document.createTextNode(suggestion.text))
+              } else if (suggestion.seperator != null) {
+                suggestion.dom.className = 'magic-box-suggestion-seperator';
+                var suggestionLabel = document.createElement('div');
+                suggestionLabel.className = 'magic-box-suggestion-seperator-label';
+                suggestionLabel.appendChild(document.createTextNode(suggestion.seperator))
+                suggestion.dom.appendChild(suggestionLabel)
               }
             }
-          }
-          if (suggestion.onSelect != null) {
-            suggestion.dom.onclick = <() => void>suggestion.onSelect;
-          }
-          suggestion.dom['suggestion'] = suggestion;
-          this.suggestions.appendChild(suggestion.dom);
-        });
+            if (suggestion.onSelect == null && suggestion.text != null) {
+              suggestion.onSelect = () => {
+                this.setText(suggestion.text);
+                this.setCursor(suggestion.text.length);
+                if (this.suggestionSelect != null) {
+                  this.suggestionSelect(suggestion);
+                }
+              }
+            }
+            if (suggestion.onSelect != null) {
+              suggestion.dom.onclick = <() => void>suggestion.onSelect;
+            }
+            suggestion.dom['suggestion'] = suggestion;
+            this.suggestions.appendChild(suggestion.dom);
+          });
 
-        $(this.element).toggleClass('magic-box-hasSuggestion', suggestions.length > 0);
-      });
+          $(this.element).toggleClass('magic-box-hasSuggestion', suggestions.length > 0);
+        });
+      }
     }
 
-    public tabPress() {
+    private tabPress() {
       this.setText(this.text + this.ghostTextContainer.innerText);
     }
 
-    public upPress() {
+    private upPress() {
       var selected = this.suggestions.querySelector('.magic-box-selected');
       if (selected != null) {
         $(selected).removeClass('magic-box-selected');
@@ -237,14 +249,15 @@ module Coveo.MagicBox {
       return this.input.selectionStart
     }
 
-    public resultAtCursor(): Result[] {
-      return this.displayedResult.resultAt(this.getCursor());
+    public resultAtCursor(match?: string|{ (result: Result): boolean }): Result[] {
+      return this.displayedResult.resultAt(this.getCursor(), match);
     }
 
     private setupHandler() {
       $(this.input).blur(() => { this.blur(); })
         .focus(() => { this.focus(); })
         .click((e) => { this.click(); })
+        .select((e) => { this.click(); })
         .keydown((e) => { this.keydown(e); })
         .keyup((e) => { this.keyup(e); })
         .mouseenter(() => { this.mouseenter(); })
@@ -309,12 +322,6 @@ module Coveo.MagicBox {
         case 38:
           this.upPress();
           break;
-        // Left
-        // Right
-        case 37:
-        case 39:
-          this.updateSuggestions();
-          break;
         // Down
         case 40:
           this.downPress();
@@ -323,6 +330,7 @@ module Coveo.MagicBox {
           this.enterPress(e);
           break;
         default:
+          this.updateSuggestions();
           break;
       }
     }

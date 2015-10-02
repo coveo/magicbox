@@ -18,21 +18,22 @@ module Coveo.MagicBox {
 
     parseOnce(input: string, end: boolean, ref: Expression): Result {
       var refResult = ref.parse(input, end);
-      if (!refResult.isSuccess() && this.occurrence == '?') {
+      var success = refResult.isSuccess();
+      if (!success && this.occurrence == '?') {
         if (end) {
           // if end was found
           if (input.length == 0) {
-            return new Result('', this, input);
+          return new RefResult([], this, input, refResult);
           }
           // if end was not found and all error expression are EndOfInput, reparse with end = false.
           if (_.all(refResult.getBestExpect(), (expect) => expect.expression == ExpressionEndOfInput)) {
-            return new EndOfInputResult(ref.parse(input, false));
+            return new RefResult([new Result(null, ExpressionEndOfInput, input)], this, input, refResult);
           }
           return refResult;
         }
-        return new Result('', this, input);
+        return new RefResult([], this, input, null);
       }
-      return new Result([refResult], this, input);
+      return new RefResult([refResult], this, input, success ? null : refResult);
     }
 
     parseMany(input: string, end: boolean, ref: Expression) {
@@ -50,7 +51,7 @@ module Coveo.MagicBox {
           subInput = subInput.substr(subResult.getLength());
         }
       } while (success);
-      
+
       // minimal occurance of a ref
       var requiredOccurance = _.isNumber(this.occurrence) ? <number>this.occurrence : (this.occurrence == '+' ? 1 : 0);
 
@@ -58,20 +59,28 @@ module Coveo.MagicBox {
       if (subResults.length < requiredOccurance) {
         subResults.push(subResult);
       } else if (end) {
-        // if there is at least one match, check if the last match is at the end 
+        // if there is at least one match, check if the last match is at the end
         if (subResults.length > 0) {
-          var last = subResults.pop();
-          var newSubResult = last.expression.parse(last.input, true);
-          subResults.push(newSubResult);
+          var last = _.last(subResults);
+          subResult = ref.parse(last.input, true);
+          if (subResult.isSuccess()){
+            subResults.push(subResult);
+          } else {
+            subResults.push(new Result(null, ExpressionEndOfInput, last.input.substr(last.getLength())));
+            subResult = ref.parse(last.input.substr(last.getLength()), true);
+          }
         } else if (input.length != 0) {
-          return new EndOfInputResult(new Result(subResults, this, input));
+          var endOfInput = new Result(null, ExpressionEndOfInput, input);
+          return new RefResult([endOfInput], this, input, subResult);
         }
       }
-      return new Result(subResults, this, input);
+      return new RefResult(subResults, this, input, subResult);
     }
 
     public toString() {
       return this.id;
     }
   }
+
+
 }

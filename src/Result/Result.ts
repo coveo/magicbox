@@ -21,7 +21,7 @@ module Coveo.MagicBox {
       // if null is the value, this mean the expression could not parse this input
       return this.value != null || (this.subResults != null && _.all(this.subResults, (subResult) => subResult.isSuccess()));
     }
-    
+
     /**
      * Return path to this result ([parent.parent, parent, this])
      */
@@ -61,7 +61,7 @@ module Coveo.MagicBox {
       }
       return null;
     }
-    
+
     /**
     * Return all children that match the condition (can be it-self). If match is a string, it will search for the result expresion id
     */
@@ -76,36 +76,47 @@ module Coveo.MagicBox {
       }
       return results;
     }
-    
+
     /**
      * Return the first child that match the condition (can be it-self). If match is a string, it will search for the result expresion id
      */
-    public resultAt(index): Result[] {
-      if (index < 0) {
+    public resultAt(index: number, match?: string|{ (result: Result): boolean }): Result[] {
+      if (index < 0 || index > this.getLength()) {
         return [];
       }
-
-      var value = this.value == null && this.subResults == null ? this.input : this.value;
-      if (value != null) {
-        if (index <= value.length) {
+      if (match != null) {
+        if (_.isString(match)) {
+          if (match == this.expression.id) {
+            return [this];
+          }
+        } else {
+          if ((<{ (result: Result): boolean }>match)(this)) {
+            return [this];
+          }
+        }
+      } else {
+        var value = this.value == null && this.subResults == null ? this.input : this.value;
+        if (value != null) {
           return [this];
         }
-        return [];
       }
 
       if (this.subResults != null) {
         var results = [];
         for (var i = 0; i < this.subResults.length; i++) {
           var subResult = this.subResults[i];
-          results = results.concat(subResult.resultAt(index));
+          results = results.concat(subResult.resultAt(index, match));
           index -= subResult.getLength();
+          if (index < 0) {
+            break;
+          }
         }
         return results;
       }
 
       return [];
     }
-    
+
     /**
     * Return all fail result.
     */
@@ -118,7 +129,7 @@ module Coveo.MagicBox {
       }
       return [];
     }
-    
+
     /**
     * Return the best fail result (The farthest result who got parsed). We also remove duplicate and always return the simplest result of a kind
     */
@@ -154,7 +165,7 @@ module Coveo.MagicBox {
         (input.length > 0 ? JSON.stringify(input[0]) : 'end of input') +
         ' found.';
     }
-    
+
     /**
      * Return a string that represent what is before this result
      */
@@ -165,7 +176,7 @@ module Coveo.MagicBox {
       var index = _.indexOf(this.parent.subResults, this);
       return this.parent.before() + _.chain(this.parent.subResults).first(index).map((subResult) => subResult.toString()).join('').value();
     }
-    
+
     /**
      * Return a string that represent what is after this result
      */
@@ -234,11 +245,6 @@ module Coveo.MagicBox {
     public clean(path?: Result[]): Result {
       if (path != null || !this.isSuccess()) {
         path = path || _.last(this.getBestExpect()).path(this);
-        /* TODO in OPTION 
-        if (this.expression instanceof ExpressionOptions) {
-          path.shift();
-        }
-        */
         var next = _.first(path);
         if (next != null) {
           var nextIndex = _.indexOf(this.subResults, next);

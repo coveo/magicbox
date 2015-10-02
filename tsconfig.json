@@ -1,0 +1,34 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "outDir": "/tmp"
+    },
+    "filesGlob": [
+        "src/**/*.ts"
+    ],
+    "files": [
+        "src/Expression/Expression.ts",
+        "src/Expression/ExpressionConstant.ts",
+        "src/Expression/ExpressionEndOfInput.ts",
+        "src/Expression/ExpressionFunction.ts",
+        "src/Expression/ExpressionList.ts",
+        "src/Expression/ExpressionOptions.ts",
+        "src/Expression/ExpressionRef.ts",
+        "src/Expression/ExpressionRegExp.ts",
+        "src/Grammar.ts",
+        "src/Grammars/Basic.ts",
+        "src/Grammars/Complete.ts",
+        "src/Grammars/Expressions.ts",
+        "src/Grammars/Field.ts",
+        "src/Grammars/Grammars.ts",
+        "src/Grammars/NestedQuery.ts",
+        "src/Grammars/QueryExtension.ts",
+        "src/Grammars/SubExpression.ts",
+        "src/MagicBox.ts",
+        "src/Result/EndOfInputResult.ts",
+        "src/Result/OptionResult.ts",
+        "src/Result/RefResult.ts",
+        "src/Result/Result.ts",
+        "src/Utils.ts"
+    ]
+}
