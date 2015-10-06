@@ -205,6 +205,18 @@
       }
     }
   }
+
+  &.magic-box-inline.magic-box-hasSuggestion {
+    .magic-box-suggestions {
+      position: relative;
+      display: block;
+      top:0;
+      left:0;
+      right:0;
+      border: none;
+      border-top: 1px solid $grey-300;
+    }
+  }
 }
 
 @mixin highlight($color, $left: true, $right: true) {

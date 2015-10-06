@@ -23,7 +23,7 @@ module Coveo.MagicBox {
         if (end) {
           // if end was found
           if (input.length == 0) {
-          return new RefResult([], this, input, refResult);
+            return new RefResult([], this, input, refResult);
           }
           // if end was not found and all error expression are EndOfInput, reparse with end = false.
           if (_.all(refResult.getBestExpect(), (expect) => expect.expression == ExpressionEndOfInput)) {
@@ -31,6 +31,7 @@ module Coveo.MagicBox {
           }
           return refResult;
         }
+        // the ref is not required and it do not need to end the input
         return new RefResult([], this, input, null);
       }
       return new RefResult([refResult], this, input, success ? null : refResult);
@@ -42,7 +43,7 @@ module Coveo.MagicBox {
       var subInput = input;
       var success: boolean;
 
-      // try to parse until it do not match
+      // try to parse until it do not match, do not manage the end yet
       do {
         subResult = ref.parse(subInput, false);
         success = subResult.isSuccess();
@@ -63,13 +64,17 @@ module Coveo.MagicBox {
         if (subResults.length > 0) {
           var last = _.last(subResults);
           subResult = ref.parse(last.input, true);
-          if (subResult.isSuccess()){
-            subResults.push(subResult);
+          if (subResult.isSuccess()) {
+          // if successful, replace the last subResult by the one with end
+            subResults[subResults.length - 1] = subResult;
           } else {
+            // if not successful, we keep the last successful result and we add a endOfInputExpected Result after it
             subResults.push(new Result(null, ExpressionEndOfInput, last.input.substr(last.getLength())));
+            // we parse back the last with the length of the successful Result (at the same place we put the endOfInputExpected) and put it in failAttempt
             subResult = ref.parse(last.input.substr(last.getLength()), true);
           }
         } else if (input.length != 0) {
+          // if there is no result at all and we are not at the end, return a endOfInputExpected Result
           var endOfInput = new Result(null, ExpressionEndOfInput, input);
           return new RefResult([endOfInput], this, input, subResult);
         }
@@ -81,6 +86,4 @@ module Coveo.MagicBox {
       return this.id;
     }
   }
-
-
 }

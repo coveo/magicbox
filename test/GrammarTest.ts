@@ -104,6 +104,7 @@ describe('ABC Grammar parse correctly', () => {
     var result = FakeGrammar2.parse('BCBB');
     expect(result.isSuccess()).toBeFalsy();
     expect(result.getHumanReadableExpect()).toBe('Expected end of input or "C" but "B" found.');
+    expect(result.clean().toString()).toBe('BCBB');
   });
 });
 
@@ -267,11 +268,18 @@ describe('Coveo Field Grammar parse correctly', () => {
     var result = coveoGrammar.parse('foo bar foo ');
     expect(result.isSuccess()).toBeFalsy();
     expect(result.getHumanReadableExpect()).toBe('Expected Expression but end of input found.');
+    expect(result.clean().toString()).toBe('foo bar foo ');
   });
   it('"foo bar "', () => {
     var result = coveoGrammar.parse('foo bar ');
     expect(result.isSuccess()).toBeFalsy();
     expect(result.getHumanReadableExpect()).toBe('Expected Expression but end of input found.');
+    expect(result.clean().toString()).toBe('foo bar ');
+  });
+  it('"foo bar"', () => {
+    var result = coveoGrammar.parse('foo bar');
+    expect(result.isSuccess()).toBeTruthy();
+    expect(result.clean().toString()).toBe('foo bar');
   });
   it('"$extension("', () => {
     var result = coveoGrammar.parse('$extension(');
@@ -355,11 +363,8 @@ describe('Coveo Field Grammar parse correctly', () => {
     var result = coveoGrammar.parse('[[@field] @sysuri]');
     expect(result.isSuccess()).toBeTruthy();
   });
-  it('"a a a a "', () => {
-    var result = coveoGrammar.parse('a a a a ');
-    expect(result.isSuccess()).toBeFalsy();
-    expect(result.getHumanReadableExpect()).toBe('Expected Expression but end of input found.');
-  });
+
+
 
 
 });

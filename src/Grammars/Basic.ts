@@ -1,7 +1,7 @@
 /// <reference path="Grammars.ts" />
 module Coveo.MagicBox.Grammars {
   export var notWordStart = ' ()[],$@\'"'
-  export var notInWord = ' ()[],'
+  export var notInWord = ' ()[],:'
 
   export var Basic: SubGrammar = {
     basicExpressions: ['Word'],

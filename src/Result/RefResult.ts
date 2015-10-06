@@ -4,7 +4,7 @@ module Coveo.MagicBox {
     public failAttempt: Result;
     constructor(private results: Result[], public expression: Expression, public input: string, lastResult: Result) {
       super(results, expression, input);
-      if(_.last(results) != lastResult){
+      if (_.last(results) != lastResult) {
         this.failAttempt = lastResult;
         if (this.failAttempt != null) {
           this.failAttempt.parent = this;
@@ -17,7 +17,8 @@ module Coveo.MagicBox {
     */
     public getExpect(): Result[] {
       var expect = super.getExpect();
-      if(this.failAttempt != null){
+      // add the failAttempt to the expect
+      if (this.failAttempt != null) {
         return expect.concat(this.failAttempt.getExpect());
       }
       return expect;
@@ -27,12 +28,15 @@ module Coveo.MagicBox {
      * Clean the result to have the most relevant result. If the result is successful just return a clone of it.
      */
     public clean(path?: Result[]): Result {
+      // if there is no failAttempt, we will use the default clean
       if (this.failAttempt != null && (path != null || !this.isSuccess())) {
         path = path || _.last(this.getBestExpect()).path(this);
         var next = _.first(path);
-        if(next != null && next == this.failAttempt){
+        // if the next is in the subResults, not the failAttempt, do the default clean;
+        if (next != null && next == this.failAttempt) {
           var last = _.last(this.subResults);
-          var subResults:Result[] = _.map(last.isSuccess()?this.subResults:_.initial(this.subResults), (subResult) => subResult.clean());
+          // if the last is not successful, remove it because we want the failAttempt path
+          var subResults: Result[] = _.map(last.isSuccess() ? this.subResults : _.initial(this.subResults), (subResult) => subResult.clean());
           subResults.push(next.clean(_.rest(path)));
           return new Result(subResults, this.expression, this.input);
         }

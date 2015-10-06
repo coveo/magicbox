@@ -11,11 +11,12 @@ module Coveo.MagicBox {
       var subResults: Result[] = [];
       var subResult: Result;
       var subInput = input;
-      
+
       for (var i = 0; i < this.parts.length; i++) {
         var part = this.parts[i];
         subResult = part.parse(subInput, end && i == this.parts.length - 1);
         subResults.push(subResult);
+        // if the subResult do not succeed, stop the parsing
         if (!subResult.isSuccess()) {
           break;
         } else {
