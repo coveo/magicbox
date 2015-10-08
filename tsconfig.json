@@ -24,11 +24,13 @@
         "src/Grammars/NestedQuery.ts",
         "src/Grammars/QueryExtension.ts",
         "src/Grammars/SubExpression.ts",
+        "src/InputManager.ts",
         "src/MagicBox.ts",
         "src/Result/EndOfInputResult.ts",
         "src/Result/OptionResult.ts",
         "src/Result/RefResult.ts",
         "src/Result/Result.ts",
+        "src/SuggestionsManager.ts",
         "src/Utils.ts"
     ]
 }

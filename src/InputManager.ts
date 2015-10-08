@@ -1,0 +1,258 @@
+/// <reference path="MagicBox.ts"/>
+module Coveo.MagicBox {
+
+  export class InputManager {
+    private input: HTMLInputElement;
+    private clear: HTMLElement;
+    private underlay: HTMLElement;
+    private highlightContainer: HTMLElement;
+    private ghostTextContainer: HTMLElement;
+
+    private result: Result;
+    private wordCompletion: string;
+
+    private hasFocus: boolean = false;
+
+    /**
+    * Binding event
+    */
+    public onblur: () => void;
+    public onfocus: () => void;
+    public onkeyup: (key: number) => boolean;
+    public onkeydown: (key: number) => boolean;
+    public onchangecursor: ()=> void;
+
+    constructor(private element: HTMLElement, private onchange: (text:string) => void) {
+
+      this.underlay = document.createElement('div');
+      this.underlay.className = "magic-box-underlay";
+      element.appendChild(this.underlay);
+
+      this.highlightContainer = document.createElement('span');
+      this.highlightContainer.className = "magic-box-highlight-container";
+      this.underlay.appendChild(this.highlightContainer);
+
+      this.ghostTextContainer = document.createElement('span');
+      this.ghostTextContainer.className = "magic-box-ghost-text";
+      this.underlay.appendChild(this.ghostTextContainer);
+
+      this.input = document.createElement('input');
+      this.input.spellcheck = false;
+      element.appendChild(this.input);
+
+      this.setupHandler();
+    }
+
+    /**
+    * Update the input with the result value
+    */
+    private updateInput() {
+      if (this.input.value != this.result.input) {
+        this.input.value = this.result.input;
+      }
+    }
+
+    /**
+    * Update the highlight with the result value
+    */
+    private updateHighlight() {
+      this.highlightContainer.innerHTML = '';
+      this.highlightContainer.appendChild(this.result.toHtmlElement());
+    }
+
+    /**
+    * Update the ghostText with the wordCompletion
+    */
+    private updateWordCompletion() {
+      this.ghostTextContainer.innerHTML = '';
+      if (this.wordCompletion != null) {
+        this.ghostTextContainer.appendChild(document.createTextNode(this.wordCompletion.substr(this.result.input.length)))
+      }
+    }
+
+    /**
+    * Update the scroll of the underlay this allowed the highlight to match the text
+    */
+    private updateScrollDefer: number;
+    private updateScroll(defer = true) {
+      var callback = () => {
+        // this is the cheapest call we can do before update scroll
+        if (this.underlay.clientWidth < this.underlay.scrollWidth) {
+          this.underlay.style.visibility = 'hidden';
+          this.underlay.scrollLeft = this.input.scrollLeft;
+          this.underlay.scrollTop = this.input.scrollTop;
+          this.underlay.style.visibility = 'visible';
+        }
+        // one day we will have to remove this
+        if (this.hasFocus) {
+          this.updateScroll();
+        }
+        this.updateScrollDefer = null;
+      }
+      // sometime we want it to be updated as soon as posible to have no flickering
+      if (!defer) {
+        callback();
+      } else if (this.updateScrollDefer == null) {
+        this.updateScrollDefer = requestAnimationFrame(callback)
+      }
+    }
+
+    /**
+    * Set the result and update visual if needed
+    */
+    public setResult(result: Result, wordCompletion?: string) {
+      this.result = result;
+
+      this.updateInput();
+
+      this.updateHighlight();
+
+      // reuse last wordCompletion for a better visual
+      if (_.isUndefined(wordCompletion) && this.wordCompletion != null && this.wordCompletion.indexOf(this.result.input) == 0) {
+        this.updateWordCompletion();
+      } else {
+        this.setWordCompletion(wordCompletion);
+      }
+
+      this.updateScroll();
+    }
+
+    /**
+    * Set the word completion. will be ignore if the word completion do not start with the result input
+    */
+    public setWordCompletion(wordCompletion: string) {
+      if (wordCompletion != null && wordCompletion.indexOf(this.result.input) != 0) {
+        wordCompletion = null;
+      }
+      if (this.wordCompletion != wordCompletion) {
+        this.wordCompletion = wordCompletion;
+
+        this.updateWordCompletion();
+
+        this.updateScroll();
+      }
+    }
+
+    /**
+    * Set cursor position
+    */
+    public setCursor(index: number) {
+      $(this.input).focus();
+      if (this.input.createTextRange) {
+        var range = this.input.createTextRange();
+        range.move("character", index);
+        range.select();
+      } else if (this.input.selectionStart != null) {
+        this.input.focus();
+        this.input.setSelectionRange(index, index);
+      }
+    }
+
+    public getCursor() {
+      return this.input.selectionStart;
+    }
+
+    private setupHandler() {
+      this.input.onblur = () => {
+        this.hasFocus = false;
+        setTimeout(() => {
+          if (!this.hasFocus) {
+            this.onblur && this.onblur();
+          }
+        }, 300);
+        this.updateScroll();
+      }
+      this.input.onfocus = () => {
+        if (!this.hasFocus) {
+          this.hasFocus = true;
+          this.onfocus && this.onfocus();
+        }
+      }
+      this.input.onkeydown = (e) => {
+        this.keydown(e);
+      }
+      this.input.onkeyup = (e) => {
+        this.keyup(e);
+      }
+      this.input.onscroll = () => {
+        this.updateScroll(false);
+      }
+      this.input.onclick = () => {
+        this.onchangecursor();
+      }
+      this.input.select = () => {
+        this.onchangecursor();
+      }
+    }
+
+    public focus() {
+      // neet a timeout for IE8-9
+      setTimeout(() => {
+        this.input.focus();
+      });
+    }
+
+    private keydown(e: KeyboardEvent) {
+      switch (e.keyCode || e.which) {
+        // TAB
+        case 9:
+          e.preventDefault();
+          break;
+        default:
+          e.stopPropagation();
+          if (this.onkeydown == null || this.onkeydown(e.keyCode || e.which)) {
+            requestAnimationFrame(() => {
+              this.onInputChange();
+            });
+          } else {
+            e.preventDefault();
+          }
+          break;
+      }
+    }
+
+    private keyup(e: KeyboardEvent) {
+      switch (e.keyCode || e.which) {
+        // TAB
+        case 9:
+          this.tabPress();
+          break;
+        // Left
+        // Right
+        case 37:
+        case 39:
+          this.onchangecursor();
+          break;
+        default:
+          if (this.onkeydown == null || this.onkeyup(e.keyCode || e.which)) {
+            this.onInputChange();
+          } else {
+            e.preventDefault();
+          }
+          break;
+      }
+    }
+
+    private tabPress() {
+      if (this.wordCompletion != null) {
+        this.input.value = this.wordCompletion;
+        this.onchange(this.wordCompletion);
+      }
+    }
+
+    private onInputChange() {
+      console.log(this.result.input != this.input.value)
+      if (this.result.input != this.input.value) {
+        this.onchange(this.input.value);
+      }
+    }
+
+    public getValue() {
+      return this.input.value;
+    }
+
+    public getWordCompletion() {
+      return this.wordCompletion;
+    }
+  }
+}

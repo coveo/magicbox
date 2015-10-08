@@ -120,7 +120,7 @@
     .magic-box-underlay .magic-box-ghost-text {
       visibility: visible;
     }
-    &.magic-box-hasSuggestion .magic-box-suggestions {
+    .magic-box-suggestions.magic-box-hasSuggestion {
       display: block;
     }
   }
@@ -206,8 +206,8 @@
     }
   }
 
-  &.magic-box-inline.magic-box-hasSuggestion {
-    .magic-box-suggestions {
+  &.magic-box-inline {
+    .magic-box-suggestions.magic-box-hasSuggestion {
       position: relative;
       display: block;
       top:0;
