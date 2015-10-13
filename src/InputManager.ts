@@ -121,16 +121,12 @@ module Coveo.MagicBox {
     * Set the word completion. will be ignore if the word completion do not start with the result input
     */
     public setWordCompletion(wordCompletion: string) {
-      if (wordCompletion != null && wordCompletion.indexOf(this.result.input) != 0) {
+      if (wordCompletion != null && wordCompletion.toLowerCase().indexOf(this.result.input.toLowerCase()) != 0) {
         wordCompletion = null;
       }
-      if (this.wordCompletion != wordCompletion) {
-        this.wordCompletion = wordCompletion;
-
-        this.updateWordCompletion();
-
-        this.updateScroll();
-      }
+      this.wordCompletion = wordCompletion;
+      this.updateWordCompletion();
+      this.updateScroll();
     }
 
     /**
@@ -183,9 +179,20 @@ module Coveo.MagicBox {
       this.input.select = () => {
         this.onchangecursor();
       }
+      this.input.oncut = () => {
+        setTimeout(()=>{
+          this.onInputChange();
+        });
+      }
+      this.input.onpaste = () => {
+        setTimeout(()=>{
+          this.onInputChange();
+        });
+      }
     }
 
     public focus() {
+      this.hasFocus = true;
       // neet a timeout for IE8-9
       setTimeout(() => {
         this.input.focus();
@@ -241,7 +248,6 @@ module Coveo.MagicBox {
     }
 
     private onInputChange() {
-      console.log(this.result.input != this.input.value)
       if (this.result.input != this.input.value) {
         this.onchange(this.input.value);
       }

@@ -62,7 +62,7 @@
       }
       .magic-box-ghost-text {
         visibility: hidden;
-        color: $grey-300;
+        color: $grey-400;
       }
       .magic-box-error {
         border-bottom: solid $red-500 2px;
@@ -187,6 +187,7 @@
       overflow: hidden;
       text-overflow: ellipsis;
       border-top: 1px solid $grey-50;
+      color: $grey-900;
 
       .magic-box-hightlight {
         font-weight: bold;

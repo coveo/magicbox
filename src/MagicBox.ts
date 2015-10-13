@@ -10,6 +10,7 @@ module Coveo.MagicBox {
     public onblur: () => void;
     public onfocus: () => void;
     public onchange: () => void;
+    public onsuggestions: (suggestions:Suggestion[]) => void;
     public onsubmit: () => void;
     public onclear: () => void;
 
@@ -54,7 +55,6 @@ module Coveo.MagicBox {
 
       this.suggestionsManager = new SuggestionsManager(suggestionsContainer);
 
-
       this.setupHandler();
     }
 
@@ -88,7 +88,6 @@ module Coveo.MagicBox {
     }
 
     private setupHandler() {
-
       this.inputManager.onblur = () => {
         $(this.element).removeClass('magic-box-hasFocus');
         if (!this.inline) {
@@ -149,6 +148,8 @@ module Coveo.MagicBox {
 
       this.clear.onclick = () => {
         this.setText('');
+        this.onChangeCursor();
+        this.focus();
         this.onclear && this.onclear();
       }
     }
@@ -157,6 +158,7 @@ module Coveo.MagicBox {
       this.suggestionsManager.mergeSuggestions(this.getSuggestions(), (suggestions) => {
         this.lastSuggestions = suggestions;
         this.inputManager.setWordCompletion(this.getFirstSuggestionText());
+        this.onsuggestions && this.onsuggestions(suggestions);
         _.each(suggestions, (suggestion: Suggestion) => {
           if (suggestion.onSelect == null && suggestion.text != null) {
             suggestion.onSelect = () => {
@@ -169,6 +171,7 @@ module Coveo.MagicBox {
     }
 
     public focus() {
+      $(this.element).addClass('magic-box-hasFocus');
       this.inputManager.focus();
     }
 
@@ -181,7 +184,7 @@ module Coveo.MagicBox {
       if (suggestion == null || suggestion.text == null) {
         this.inputManager.setResult(this.displayedResult, this.getFirstSuggestionText());
       } else {
-        this.inputManager.setResult(this.grammar.parse(suggestion.text).clean(), null);
+        this.inputManager.setResult(this.grammar.parse(suggestion.text).clean(), suggestion.text);
       }
     }
 
