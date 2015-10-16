@@ -20,9 +20,9 @@ module Coveo.MagicBox {
     public onfocus: () => void;
     public onkeyup: (key: number) => boolean;
     public onkeydown: (key: number) => boolean;
-    public onchangecursor: ()=> void;
+    public onchangecursor: () => void;
 
-    constructor(private element: HTMLElement, private onchange: (text:string) => void) {
+    constructor(private element: HTMLElement, private onchange: (text: string) => void) {
 
       this.underlay = document.createElement('div');
       this.underlay.className = "magic-box-underlay";
@@ -83,11 +83,11 @@ module Coveo.MagicBox {
           this.underlay.scrollTop = this.input.scrollTop;
           this.underlay.style.visibility = 'visible';
         }
+        this.updateScrollDefer = null;
         // one day we will have to remove this
         if (this.hasFocus) {
           this.updateScroll();
         }
-        this.updateScrollDefer = null;
       }
       // sometime we want it to be updated as soon as posible to have no flickering
       if (!defer) {
@@ -161,6 +161,7 @@ module Coveo.MagicBox {
       this.input.onfocus = () => {
         if (!this.hasFocus) {
           this.hasFocus = true;
+          this.updateScroll();
           this.onfocus && this.onfocus();
         }
       }
@@ -170,9 +171,6 @@ module Coveo.MagicBox {
       this.input.onkeyup = (e) => {
         this.keyup(e);
       }
-      this.input.onscroll = () => {
-        this.updateScroll(false);
-      }
       this.input.onclick = () => {
         this.onchangecursor();
       }
@@ -180,12 +178,12 @@ module Coveo.MagicBox {
         this.onchangecursor();
       }
       this.input.oncut = () => {
-        setTimeout(()=>{
+        setTimeout(() => {
           this.onInputChange();
         });
       }
       this.input.onpaste = () => {
-        setTimeout(()=>{
+        setTimeout(() => {
           this.onInputChange();
         });
       }
@@ -197,6 +195,12 @@ module Coveo.MagicBox {
       setTimeout(() => {
         this.input.focus();
       });
+    }
+
+    public blur() {
+      if (this.hasFocus) {
+        this.input.blur();
+      }
     }
 
     private keydown(e: KeyboardEvent) {

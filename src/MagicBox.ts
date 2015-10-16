@@ -6,11 +6,18 @@
 /// <reference path="./Utils.ts"/>
 /// <reference path="./Grammars/Grammars.ts" />
 module Coveo.MagicBox {
+
+  export interface Options {
+    inline?: boolean;
+    selectableSuggestionClass?: string;
+    selectedSuggestionClass?: string;
+  }
+
   export class Instance {
     public onblur: () => void;
     public onfocus: () => void;
     public onchange: () => void;
-    public onsuggestions: (suggestions:Suggestion[]) => void;
+    public onsuggestions: (suggestions: Suggestion[]) => void;
     public onsubmit: () => void;
     public onclear: () => void;
 
@@ -18,24 +25,31 @@ module Coveo.MagicBox {
 
     private inputManager: InputManager;
     private suggestionsManager: SuggestionsManager;
-    private clear: HTMLElement;
+    private clearDom: HTMLElement;
 
     private lastSuggestions: Suggestion[] = [];
 
     private result: Result;
     private displayedResult: Result;
 
-    constructor(public element: HTMLElement, public grammar: Grammar, private inline = false) {
+    constructor(public element: HTMLElement, public grammar: Grammar, public options: Options = {}) {
+      if (_.isUndefined(this.options.inline)) {
+        this.options.inline = false;
+      }
       $(element)
         .addClass('magic-box')
-        .toggleClass('magic-box-inline', inline);
+        .toggleClass('magic-box-inline', this.options.inline);
 
       this.result = this.grammar.parse('');
       this.displayedResult = this.result.clean();
 
-      this.clear = document.createElement('div');
-      this.clear.className = "magic-box-clear";
-      this.element.appendChild(this.clear);
+      this.clearDom = document.createElement('div');
+      this.clearDom.className = "magic-box-clear";
+      this.element.appendChild(this.clearDom);
+
+      var icon = document.createElement('div');
+      icon.className = "magic-box-icon";
+      this.clearDom.appendChild(icon);
 
       var inputContainer = document.createElement('div');
       inputContainer.className = "magic-box-input";
@@ -53,7 +67,7 @@ module Coveo.MagicBox {
       suggestionsContainer.className = "magic-box-suggestions";
       this.element.appendChild(suggestionsContainer);
 
-      this.suggestionsManager = new SuggestionsManager(suggestionsContainer);
+      this.suggestionsManager = new SuggestionsManager(suggestionsContainer, this.options.selectableSuggestionClass, this.options.selectedSuggestionClass);
 
       this.setupHandler();
     }
@@ -90,7 +104,7 @@ module Coveo.MagicBox {
     private setupHandler() {
       this.inputManager.onblur = () => {
         $(this.element).removeClass('magic-box-hasFocus');
-        if (!this.inline) {
+        if (!this.options.inline) {
           this.clearSuggestion();
         }
         this.onblur && this.onblur();
@@ -146,16 +160,13 @@ module Coveo.MagicBox {
         return false;
       }
 
-      this.clear.onclick = () => {
-        this.setText('');
-        this.onChangeCursor();
-        this.focus();
-        this.onclear && this.onclear();
+      this.clearDom.onclick = () => {
+        this.clear();
       }
     }
 
     private onChangeCursor() {
-      this.suggestionsManager.mergeSuggestions(this.getSuggestions(), (suggestions) => {
+      this.suggestionsManager.mergeSuggestions(this.getSuggestions != null ? this.getSuggestions() : [], (suggestions) => {
         this.lastSuggestions = suggestions;
         this.inputManager.setWordCompletion(this.getFirstSuggestionText());
         this.onsuggestions && this.onsuggestions(suggestions);
@@ -175,8 +186,12 @@ module Coveo.MagicBox {
       this.inputManager.focus();
     }
 
-    public clearSuggestion(){
-      this.suggestionsManager.updateSuggestions([]);
+    public blur() {
+      this.inputManager.blur();
+    }
+
+    public clearSuggestion() {
+      this.suggestionsManager.mergeSuggestions([]);
       this.inputManager.setWordCompletion(null);
     }
 
@@ -193,17 +208,24 @@ module Coveo.MagicBox {
       return suggestion && suggestion.text;
     }
 
-    public getValue() {
+    public getText() {
       return this.inputManager.getValue();
     }
 
     public getWordCompletion() {
       return this.inputManager.getWordCompletion();
     }
+
+    public clear() {
+      this.setText('');
+      this.onChangeCursor();
+      this.focus();
+      this.onclear && this.onclear();
+    }
   }
 
-  export function create(element: HTMLElement, grammar: Grammar, inline?: boolean) {
-    return new Instance(element, grammar, inline);
+  export function create(element: HTMLElement, grammar: Grammar, options?: Options) {
+    return new Instance(element, grammar, options);
   }
 
   export function requestAnimationFrame(callback: () => void) {

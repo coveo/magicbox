@@ -32,5 +32,6 @@
         "src/Result/Result.ts",
         "src/SuggestionsManager.ts",
         "src/Utils.ts"
-    ]
+    ],
+    "exclude": []
 }
