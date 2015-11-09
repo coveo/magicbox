@@ -22,8 +22,8 @@ module Coveo.MagicBox {
       var index: number = -1;
       if (selected != null) {
         $(selected).removeClass(this.selectedClass);
-        for(var i = 0; i < selectables.length; i ++){
-          if (selected == selectables.item(i)){
+        for (var i = 0; i < selectables.length; i++) {
+          if (selected == selectables.item(i)) {
             index = i;
             break;
           }
@@ -43,8 +43,8 @@ module Coveo.MagicBox {
       var index: number = -1;
       if (selected != null) {
         $(selected).removeClass(this.selectedClass);
-        for(var i = 0; i < selectables.length; i ++){
-          if (selected == selectables.item(i)){
+        for (var i = 0; i < selectables.length; i++) {
+          if (selected == selectables.item(i)) {
             index = i;
             break;
           }
@@ -87,7 +87,7 @@ module Coveo.MagicBox {
           if (nbPending == 0) {
             // if we have trigger a new suggestions, we do not care about those results
             if (deferred == this.pendingSuggestion) {
-              deferred.resolve(results.sort((a,b)=>b.index-a.index));
+              deferred.resolve(results.sort((a, b) => b.index - a.index));
             } else {
               deferred.reject();
             }
@@ -126,6 +126,22 @@ module Coveo.MagicBox {
         } else {
           // this need to be done if the selection is in cache and the dom is set in the suggestion
           $(dom).removeClass('magic-box-selected');
+        }
+        if ($(dom).hasClass(this.selectableClass)) {
+          dom.onmouseover = (e) => {
+            if (e.target == dom) {
+              var selected = this.element.getElementsByClassName(this.selectedClass);
+              for(var i = 0; i < selected.length; i++){
+                $(selected.item(i)).removeClass(this.selectedClass);
+              }
+              $(dom).addClass(this.selectedClass);
+            }
+          }
+          dom.onmouseout = (e) => {
+            if (e.target == dom) {
+              $(dom).removeClass(this.selectedClass);
+            }
+          }
         }
         dom['suggestion'] = suggestion;
         this.element.appendChild(dom);

@@ -38,6 +38,7 @@ module Coveo.MagicBox {
 
       this.input = document.createElement('input');
       this.input.spellcheck = false;
+      this.input.setAttribute('form', 'coveo-dummy-form');
       element.appendChild(this.input);
 
       this.setupHandler();

@@ -3,15 +3,17 @@ module Coveo.MagicBox.Utils {
     return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
   }
 
-  var highligthDefaultTemplate = _.template('<span<%= highligth ? \' class="magic-box-hightlight"\' : \'\' %>><%- text %></span>')
+  var escapeText = (classname: string, text: string) => {
+    return `<span class="${classname}">${_.escape(text) }</span>`
+  }
 
-  export function highligthText(text: string, highligth: string, ignoreCase = false, template = highligthDefaultTemplate) {
+  export function highligthText(text: string, highligth: string, ignoreCase = false, matchClass: string = 'magic-box-hightlight', doNotMatchClass: string = '') {
     if (highligth.length == 0) {
       return text;
     }
     var escaped = escapeRegExp(highligth);
-    var stringRegex = '('+escaped+')|(.*?(?='+escaped+')|.+)'
+    var stringRegex = '(' + escaped + ')|(.*?(?=' + escaped + ')|.+)'
     var regex = new RegExp(stringRegex, ignoreCase ? 'gi' : 'g');
-    return text.replace(regex, (text, match, notmatch)=>highligthDefaultTemplate({text:text, highligth:match != null}));
+    return text.replace(regex, (text, match, notmatch) => escapeText(match != null ? matchClass : doNotMatchClass, text));
   }
 }
