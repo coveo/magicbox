@@ -11,6 +11,7 @@ module Coveo.MagicBox {
     inline?: boolean;
     selectableSuggestionClass?: string;
     selectedSuggestionClass?: string;
+    suggestionTimeout?: number;
   }
 
   export class Instance {
@@ -57,7 +58,7 @@ module Coveo.MagicBox {
 
       this.inputManager = new InputManager(inputContainer, (text) => {
         this.setText(text);
-        this.onChangeCursor();
+        this.showSuggestion();
         this.onchange && this.onchange();
       });
 
@@ -67,7 +68,11 @@ module Coveo.MagicBox {
       suggestionsContainer.className = "magic-box-suggestions";
       this.element.appendChild(suggestionsContainer);
 
-      this.suggestionsManager = new SuggestionsManager(suggestionsContainer, this.options.selectableSuggestionClass, this.options.selectedSuggestionClass);
+      this.suggestionsManager = new SuggestionsManager(suggestionsContainer, {
+        selectableClass: this.options.selectableSuggestionClass,
+        selectedClass: this.options.selectedSuggestionClass,
+        timeout: this.options.suggestionTimeout
+      });
 
       this.setupHandler();
     }
@@ -112,7 +117,7 @@ module Coveo.MagicBox {
 
       this.inputManager.onfocus = () => {
         $(this.element).addClass('magic-box-hasFocus');
-        this.onChangeCursor();
+        this.showSuggestion();
         this.onfocus && this.onfocus();
       }
 
@@ -144,7 +149,7 @@ module Coveo.MagicBox {
       }
 
       this.inputManager.onchangecursor = () => {
-        this.onChangeCursor();
+        this.showSuggestion();
       }
 
       this.inputManager.onkeyup = (key: number) => {
@@ -164,8 +169,8 @@ module Coveo.MagicBox {
         this.clear();
       }
     }
-
-    private onChangeCursor() {
+    
+    public showSuggestion(){
       this.suggestionsManager.mergeSuggestions(this.getSuggestions != null ? this.getSuggestions() : [], (suggestions) => {
         this.lastSuggestions = suggestions;
         this.inputManager.setWordCompletion(this.getFirstSuggestionText());
@@ -218,7 +223,7 @@ module Coveo.MagicBox {
 
     public clear() {
       this.setText('');
-      this.onChangeCursor();
+      this.showSuggestion();
       this.focus();
       this.onclear && this.onclear();
     }
