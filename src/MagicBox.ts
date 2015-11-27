@@ -20,6 +20,7 @@ module Coveo.MagicBox {
     public onchange: () => void;
     public onsuggestions: (suggestions: Suggestion[]) => void;
     public onsubmit: () => void;
+    public onselect: (suggestions:Suggestion) => void;
     public onclear: () => void;
 
     public getSuggestions: () => Array<JQueryPromise<Suggestion[]>|Suggestion[]>;
@@ -179,7 +180,7 @@ module Coveo.MagicBox {
           if (suggestion.onSelect == null && suggestion.text != null) {
             suggestion.onSelect = () => {
               this.setText(suggestion.text);
-              this.onsubmit && this.onsubmit();
+              this.onselect && this.onselect(suggestion);
             };
           }
         });
