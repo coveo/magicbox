@@ -20,10 +20,10 @@ module Coveo.MagicBox {
     public onchange: () => void;
     public onsuggestions: (suggestions: Suggestion[]) => void;
     public onsubmit: () => void;
-    public onselect: (suggestions:Suggestion) => void;
+    public onselect: (suggestions: Suggestion) => void;
     public onclear: () => void;
 
-    public getSuggestions: () => Array<JQueryPromise<Suggestion[]>|Suggestion[]>;
+    public getSuggestions: () => Array<JQueryPromise<Suggestion[]> | Suggestion[]>;
 
     private inputManager: InputManager;
     private suggestionsManager: SuggestionsManager;
@@ -103,7 +103,7 @@ module Coveo.MagicBox {
       return this.inputManager.getCursor();
     }
 
-    public resultAtCursor(match?: string|{ (result: Result): boolean }): Result[] {
+    public resultAtCursor(match?: string | { (result: Result): boolean }): Result[] {
       return this.displayedResult.resultAt(this.getCursor(), match);
     }
 
@@ -146,7 +146,7 @@ module Coveo.MagicBox {
           }
           return false;
         } else if (key == 27) { // ESC
-          this.clearSuggestion();        
+          this.clearSuggestion();
         }
         return true;
       }
@@ -172,20 +172,24 @@ module Coveo.MagicBox {
         this.clear();
       }
     }
-    
-    public showSuggestion(){
+
+    public showSuggestion() {
       this.suggestionsManager.mergeSuggestions(this.getSuggestions != null ? this.getSuggestions() : [], (suggestions) => {
-        this.lastSuggestions = suggestions;
-        this.inputManager.setWordCompletion(this.getFirstSuggestionText());
-        this.onsuggestions && this.onsuggestions(suggestions);
-        _.each(suggestions, (suggestion: Suggestion) => {
-          if (suggestion.onSelect == null && suggestion.text != null) {
-            suggestion.onSelect = () => {
-              this.setText(suggestion.text);
-              this.onselect && this.onselect(suggestion);
-            };
-          }
-        });
+        this.updateSuggestion(suggestions);
+      });
+    }
+
+    private updateSuggestion(suggestions: Suggestion[]) {
+      this.lastSuggestions = suggestions;
+      this.inputManager.setWordCompletion(this.getFirstSuggestionText());
+      this.onsuggestions && this.onsuggestions(suggestions);
+      _.each(suggestions, (suggestion: Suggestion) => {
+        if (suggestion.onSelect == null && suggestion.text != null) {
+          suggestion.onSelect = () => {
+            this.setText(suggestion.text);
+            this.onselect && this.onselect(suggestion);
+          };
+        }
       });
     }
 
@@ -199,7 +203,9 @@ module Coveo.MagicBox {
     }
 
     public clearSuggestion() {
-      this.suggestionsManager.mergeSuggestions([]);
+      this.suggestionsManager.mergeSuggestions([], (suggestions) => {
+        this.updateSuggestion(suggestions);
+      });
       this.inputManager.setWordCompletion(null);
     }
 
