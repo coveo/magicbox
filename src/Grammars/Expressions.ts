@@ -31,7 +31,7 @@ module Coveo.MagicBox.Grammars {
           _.each(<string[]>expressionDef, (value: string) => {
             (<string[]>grammars[id]).push(value);
           })
-          throw 'Can not merge ' + id + '(' + expressionDef.toString() + ' => ' + grammars[id].toString() + ')';
+          throw 'Can not merge ' + id + '(' + new String(expressionDef) + ' => ' + new String(grammars[id]) + ')';
         }
       }
     });
@@ -42,10 +42,11 @@ module Coveo.MagicBox.Grammars {
     var BasicExpression: string[] = [];
     var grammars: { [id: string]: ExpressionDef } = {
       Start: ['Expressions', 'Empty'],
-      Expressions: '[Expression][ExpressionsList*]',
+      Expressions: '[OptionalSpaces][Expression][ExpressionsList*][OptionalSpaces]',
       ExpressionsList: '[Spaces][Expression]',
       Expression: expressions,
       BasicExpression: BasicExpression,
+      OptionalSpaces: / */,
       Spaces: / +/,
       Empty: /(?!.)/
     };

@@ -11,7 +11,7 @@ module Coveo.MagicBox {
         this.value = <string>value;
       } else if (_.isArray(value)) {
         this.subResults = <Result[]>value;
-        _.forEach(this.subResults, (subResult) => {
+        _.forEach(this.subResults, (subResult:Result) => {
           subResult.parent = this;
         });
       }
@@ -26,7 +26,7 @@ module Coveo.MagicBox {
      * Return path to this result ([parent.parent, parent, this])
      */
     public path(until?: Result): Result[] {
-      var path = this.parent != null && this.parent != until ? this.parent.path(until) : [];
+      var path:Result[] = this.parent != null && this.parent != until ? this.parent.path(until) : [];
       path.push(this);
       return path;
     }
@@ -248,7 +248,7 @@ module Coveo.MagicBox {
         var next = _.first(path);
         if (next != null) {
           var nextIndex = _.indexOf(this.subResults, next);
-          var subResults = nextIndex == -1 ? [] : _.map(_.first(this.subResults, nextIndex), (subResult) => subResult.clean());
+          var subResults:Result[] = nextIndex == -1 ? [] : _.map(_.first(this.subResults, nextIndex), (subResult) => subResult.clean());
           subResults.push(next.clean(_.rest(path)));
           return new Result(subResults, this.expression, this.input);
         } else {

@@ -3,7 +3,7 @@ module Coveo.MagicBox.Grammars {
   export var NestedQuery: SubGrammar = {
     basicExpressions: ['NestedQuery'],
     grammars: {
-      NestedQuery: '[[NestedField][Spaces?][Expressions]]',
+      NestedQuery: '[[NestedField][OptionalSpaces][Expressions]]',
       NestedField: '[[Field]]',
       FieldValue: ['NestedQuery']
     },

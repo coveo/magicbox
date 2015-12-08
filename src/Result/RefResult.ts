@@ -36,7 +36,7 @@ module Coveo.MagicBox {
         if (next != null && next == this.failAttempt) {
           var last = _.last(this.subResults);
           // if the last is not successful, remove it because we want the failAttempt path
-          var subResults: Result[] = _.map(last.isSuccess() ? this.subResults : _.initial(this.subResults), (subResult) => subResult.clean());
+          var subResults: Result[] = _.map(last != null && last.isSuccess() ? this.subResults : _.initial(this.subResults), (subResult) => subResult.clean());
           subResults.push(next.clean(_.rest(path)));
           return new Result(subResults, this.expression, this.input);
         }

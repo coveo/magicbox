@@ -178,10 +178,6 @@ describe('Coveo Field Grammar parse correctly', () => {
     var result = coveoGrammar.parse('@fieldName');
     expect(result.isSuccess()).toBeTruthy();
   });
-  it('"@fieldName"', () => {
-    var result = coveoGrammar.parse('@fieldName');
-    expect(result.isSuccess()).toBeTruthy();
-  });
   it('"@fieldName="', () => {
     var result = coveoGrammar.parse('@fieldName=');
     expect(result.isSuccess()).toBeFalsy();
@@ -227,7 +223,7 @@ describe('Coveo Field Grammar parse correctly', () => {
   it('"word(word2)"', () => {
     var result = coveoGrammar.parse('word(word2)');
     expect(result.isSuccess()).toBeFalsy();
-    expect(result.getHumanReadableExpect()).toBe('Expected ":" or end of input or Spaces but "(" found.');
+    expect(result.getHumanReadableExpect()).toBe('Expected ":" or Spaces or end of input but "(" found.');
   });
   it('"word (word2)"', () => {
     var result = coveoGrammar.parse('word (word2)');
@@ -250,31 +246,9 @@ describe('Coveo Field Grammar parse correctly', () => {
     expect(result.isSuccess()).toBeFalsy();
     expect(result.getHumanReadableExpect()).toBe('Expected FieldName but end of input found.');
   });
-  it('"@field "', () => {
-    var result = coveoGrammar.parse('@field ');
-    expect(result.isSuccess()).toBeFalsy();
-    expect(result.getHumanReadableExpect()).toBe('Expected FieldOperator or Expression but end of input found.');
-  });
-  it('" @field"', () => {
-    var result = coveoGrammar.parse(' @field');
-    expect(result.isSuccess()).toBeFalsy();
-    expect(result.getHumanReadableExpect()).toBe('Expected Start but " " found.');
-  });
   it('"foo ( bar foo )"', () => {
     var result = coveoGrammar.parse('foo ( bar foo )');
     expect(result.isSuccess()).toBeTruthy();
-  });
-  it('"foo bar foo "', () => {
-    var result = coveoGrammar.parse('foo bar foo ');
-    expect(result.isSuccess()).toBeFalsy();
-    expect(result.getHumanReadableExpect()).toBe('Expected Expression but end of input found.');
-    expect(result.clean().toString()).toBe('foo bar foo ');
-  });
-  it('"foo bar "', () => {
-    var result = coveoGrammar.parse('foo bar ');
-    expect(result.isSuccess()).toBeFalsy();
-    expect(result.getHumanReadableExpect()).toBe('Expected Expression but end of input found.');
-    expect(result.clean().toString()).toBe('foo bar ');
   });
   it('"foo bar"', () => {
     var result = coveoGrammar.parse('foo bar');
@@ -363,8 +337,16 @@ describe('Coveo Field Grammar parse correctly', () => {
     var result = coveoGrammar.parse('[[@field] @sysuri]');
     expect(result.isSuccess()).toBeTruthy();
   });
-
-
-
-
+  it('""Not Quoted""', () => {
+    var result = coveoGrammar.parse('"Not Quoted"');
+    expect(result.isSuccess()).toBeTruthy();
+  });
+  it('" start with space"', () => {
+    var result = coveoGrammar.parse(' start with space');
+    expect(result.isSuccess()).toBeTruthy();
+  });
+  it('"end with space "', () => {
+    var result = coveoGrammar.parse('end with space ');
+    expect(result.isSuccess()).toBeTruthy();
+  });
 });
