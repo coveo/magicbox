@@ -51,7 +51,7 @@ module Coveo.MagicBox {
           subResults.push(subResult);
           subInput = subInput.substr(subResult.getLength());
         }
-      } while (success);
+      } while (success && subResult.input != subInput);
 
       // minimal occurance of a ref
       var requiredOccurance = _.isNumber(this.occurrence) ? <number>this.occurrence : (this.occurrence == '+' ? 1 : 0);

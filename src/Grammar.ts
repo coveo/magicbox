@@ -67,10 +67,10 @@ module Coveo.MagicBox {
 
     public static buildStringExpression(value: string, id: string, grammar: Grammar): Expression {
       var matchs = Grammar.stringMatch(value, Grammar.spliter);
-      var expressions = _.map(matchs, (match, i) => {
-        if (match[1] != null) { // Ref
+      var expressions = _.map(matchs, (match: string[], i: number): Expression => {
+        if (match[1]) { // Ref
           var ref = match[1];
-          var occurrence = match[3] ? Number(match[3]) : match[2];
+          var occurrence = match[3] ? Number(match[3]) : match[2] || null;
           return new ExpressionRef(ref, occurrence, id + '_' + i, grammar);
         } else { // Constant
           return new ExpressionConstant(match[4], id + '_' + i)
@@ -97,4 +97,4 @@ module Coveo.MagicBox {
 
     static spliter = /\[(\w+)(\*|\+|\?|\{([1-9][0-9]*)\})?\]|(.[^\[]*)/;
   }
-}
+}
