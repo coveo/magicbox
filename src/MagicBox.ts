@@ -20,7 +20,7 @@ module Coveo.MagicBox {
     public onchange: () => void;
     public onsuggestions: (suggestions: Suggestion[]) => void;
     public onsubmit: () => void;
-    public onselect: (suggestions: Suggestion) => void;
+    public onselect: (suggestion: Suggestion) => void;
     public onclear: () => void;
 
     public getSuggestions: () => Array<JQueryPromise<Suggestion[]> | Suggestion[]>;
@@ -57,10 +57,15 @@ module Coveo.MagicBox {
       inputContainer.className = "magic-box-input";
       element.appendChild(inputContainer);
 
-      this.inputManager = new InputManager(inputContainer, (text) => {
-        this.setText(text);
-        this.showSuggestion();
-        this.onchange && this.onchange();
+      this.inputManager = new InputManager(inputContainer, (text, wordCompletion) => {
+        if (!wordCompletion) {
+          this.setText(text);
+          this.showSuggestion();
+          this.onchange && this.onchange();
+        } else {
+          this.setText(text);
+          this.onselect && this.onselect(this.getFirstSuggestionText());
+        }
       });
 
       this.inputManager.setResult(this.displayedResult);
@@ -181,7 +186,8 @@ module Coveo.MagicBox {
 
     private updateSuggestion(suggestions: Suggestion[]) {
       this.lastSuggestions = suggestions;
-      this.inputManager.setWordCompletion(this.getFirstSuggestionText());
+      var firstSuggestion = this.getFirstSuggestionText();
+      this.inputManager.setWordCompletion(firstSuggestion && firstSuggestion.text);
       this.onsuggestions && this.onsuggestions(suggestions);
       _.each(suggestions, (suggestion: Suggestion) => {
         if (suggestion.onSelect == null && suggestion.text != null) {
@@ -211,15 +217,15 @@ module Coveo.MagicBox {
 
     private focusOnSuggestion(suggestion: Suggestion) {
       if (suggestion == null || suggestion.text == null) {
-        this.inputManager.setResult(this.displayedResult, this.getFirstSuggestionText());
+        suggestion = this.getFirstSuggestionText();
+        this.inputManager.setResult(this.displayedResult, suggestion && suggestion.text);
       } else {
         this.inputManager.setResult(this.grammar.parse(suggestion.text).clean(), suggestion.text);
       }
     }
 
-    private getFirstSuggestionText() {
-      var suggestion = _.find(this.lastSuggestions, (suggestion) => suggestion.text != null);
-      return suggestion && suggestion.text;
+    private getFirstSuggestionText(): Suggestion {
+      return _.find(this.lastSuggestions, (suggestion) => suggestion.text != null);;
     }
 
     public getText() {
