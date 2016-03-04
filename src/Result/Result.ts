@@ -35,7 +35,7 @@ module Coveo.MagicBox {
      * Return the closest parent that match the condition (can be it-self). If match is a string, it will search for the result expresion id
      */
     public findParent(match: string|{ (result: Result): boolean }): Result {
-      var parent = this;
+      var parent = <Result>this;
       var iterator = _.isString(match) ? (result: Result) => match == result.expression.id : <{ (result: Result): boolean }>match;
       while (parent != null && !iterator(parent)) {
         parent = parent.parent;
