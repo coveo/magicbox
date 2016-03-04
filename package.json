@@ -27,6 +27,7 @@
     "merge2": "^0.3.6",
     "phantomjs": "^1.9.17",
     "typescript": "^1.5.3",
-    "underscore": "^1.8.3"
+    "underscore": "^1.8.3",
+    "gulp-run-sequence": "0.3.2"
   }
 }
