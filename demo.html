@@ -34,9 +34,8 @@
         magicbox = new Coveo.MagicBox.create($('#mb').get(0), Coveo.MagicBox.Grammars.ExpressionsGrammar(Coveo.MagicBox.Grammars.Complete), true);
         magicbox.getSuggestions = function () {
           var d = $.Deferred();
-          setTimeout(function(){
-            d.resolve([{seperator:'seperator'},{text:'Abc'},{text:'Def'}, {text:'Ghi'}]);
-          }, 100);
+          d.resolve([{text:'Abc'},{text:'Def'}, {text:'Ghi'}]);
+        
           return [d];
         }
     })

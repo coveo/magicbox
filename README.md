@@ -1,4 +1,9 @@
 # Magic Box
+> A search box on steroid
+
+## Preview
+Magic Box allows to create a search box designed to show auto completions based on a grammar
+
 ## Grammar
 ```
 new Grammar('Start', {
