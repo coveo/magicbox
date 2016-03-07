@@ -33,13 +33,10 @@ gulp.task('buildMagicBox', ['copyLib'], function () {
     process.exit(1);
   })
 
-  result.on('success', function () {
-    return merge([
-      result.dts.pipe(concat('MagicBox.d.ts')).pipe(gulp.dest('bin/')),
-      result.js.pipe(concat('MagicBox.js')).pipe(gulp.dest('bin/'))
-    ]);
-  })
-
+  return merge([
+    result.dts.pipe(concat('MagicBox.d.ts')).pipe(gulp.dest('bin/')),
+    result.js.pipe(concat('MagicBox.js')).pipe(gulp.dest('bin/'))
+  ]);
 });
 
 
@@ -63,7 +60,7 @@ gulp.task('buildTest', function () {
 });
 
 gulp.task('test', ['buildTest'], function () {
-  var result = gulp.src([
+  return gulp.src([
     'node_modules/underscore/underscore.js',
     'node_modules/jquery/dist/jquery.js',
     'bin/MagicBox.js',

@@ -1,11 +1,11 @@
 {
-  "name": "@coveo/magicbox",
-  "version": "0.0.20",
+  "name": "coveomagicbox",
+  "version": "1.0.0",
   "description": "Magicbox",
   "dependencies": {},
   "repository": {},
-  "author": "",
-  "license": "MIT",
+  "author": "sandbox_JSUI@coveo.com",
+  "license": "Apache-2.0",
   "devDependencies": {
     "gulp": "^3.9.0",
     "gulp-add-src": "^0.2.0",
