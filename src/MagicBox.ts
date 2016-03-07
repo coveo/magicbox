@@ -24,7 +24,7 @@ module Coveo.MagicBox {
     public onselect: (suggestion: Suggestion) => void;
     public onclear: () => void;
 
-    public getSuggestions: () => Array<JQueryPromise<Suggestion[]> | Suggestion[]>;
+    public getSuggestions: () => Array<Promise<Suggestion[]> | Suggestion[]>;
 
     private inputManager: InputManager;
     private suggestionsManager: SuggestionsManager;
@@ -39,9 +39,8 @@ module Coveo.MagicBox {
       if (_.isUndefined(this.options.inline)) {
         this.options.inline = false;
       }
-      $(element)
-        .addClass('magic-box')
-        .toggleClass('magic-box-inline', this.options.inline);
+      $$(element).addClass('magic-box');
+      $$(element).toggleClass('magic-box-inline', this.options.inline);
 
       this.result = this.grammar.parse('');
       this.displayedResult = this.result.clean();

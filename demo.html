@@ -14,7 +14,8 @@
     body {
       background: #EEEEEE;
     }
-    [data-id="BasicExpression"]{
+
+    [data-id="BasicExpression"] {
       background: #fcc
     }
     .wrapper {
@@ -31,15 +32,35 @@
   <script>
     var magicbox;
     $(function () {
-        magicbox = new Coveo.MagicBox.create($('#mb').get(0), Coveo.MagicBox.Grammars.ExpressionsGrammar(Coveo.MagicBox.Grammars.Complete), true);
+      magicbox = new Coveo.MagicBox.create($('#mb').get(0), Coveo.MagicBox.Grammars.ExpressionsGrammar(Coveo.MagicBox.Grammars.Complete), {
+        suggestionTimeout: 500
+      });
         magicbox.getSuggestions = function () {
-          var d = $.Deferred();
-          d.resolve([{text:'Abc'},{text:'Def'}, {text:'Ghi'}]);
-        
-          return [d];
+          var promise = new Promise(function (resolve, reject) {
+            resolve([{text: 'Abc'}, {text: 'Def'}, {text: 'Ghi'}]);
+          })
+
+          var promise2 = new Promise(function (resolve, reject) {
+            setTimeout(function () {
+              resolve([{text: 'yoo'}])
+            }, 1500)
+          })
+
+          var promise3 = new Promise(function (resolve, reject) {
+            setTimeout(function () {
+              var currentText = magicbox.getText();
+              if (currentText) {
+                resolve([{text: magicbox.getText()}])
+              } else {
+                resolve(undefined)
+              }
+            }, 200)
+          })
+
+
+          return [promise, promise2, promise3];
         }
     })
-
   </script>
 </body>
 
