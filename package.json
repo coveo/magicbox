@@ -4,9 +4,6 @@
   "description": "Magicbox",
   "dependencies": {},
   "repository": {},
-  "scripts": {
-    "prepublish": "gulp"
-  },
   "author": "",
   "license": "MIT",
   "devDependencies": {
