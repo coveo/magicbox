@@ -1,0 +1,22 @@
+sudo: false
+language: node_js
+node_js:
+- 4.2.2
+install:
+- npm install -g gulp
+- npm install
+cache:
+  directories:
+  - node_modules
+notifications:
+  email:
+    on_success: never
+    on_failure: never
+deploy:
+  provider: npm
+  email: sandbox_JSUI@coveo.com
+  api_key:
+    secure: b0jRHcH6VgMDBTEX31knFUoCL+zRiyfYajyMcgKyT7HvXQUzfh/F8Jak6cwasW9cv6O16Sh0GucKp5XvEmvT9oXtiI2Gu11lszcy3APkNhuCz3c/EcVlannwNPeA/mVRyfx9ITFnOlBH1uKV+BYgVPFWr/NPNJyG37gZwmMYTNvjZPw46Gso/uAT1Kd0taTOzC2zV7/I+rghtRNUuJAtlSjtbpw5iI1ETrSvDked2dnPKdWnl3WKYgfXIZI3yCLC7f2EdimuEb8Y2ZCWhHvs+xJfJ3dmb8NZruidjU10sugtMsRllh2X7b3lWzi8h0SkRF7LWuh7x2bUAlCvErSkWwCwpCR4l7USC1w9amj9Q6M813V2Ses7Qxy1Oz7RMdGCpNyZ4KmNp3nEbGDhbRV/Kg6xloNx2Mu7K7EKCeWsgUDu2kpMKUnLMMLjdFsoZB8RCNPoOhUsocPzyitOPK58yEvVTjMOtAD+F0KSDY7MIunTK3SzNCzQFZZPfo3lof8Lq7qm0moIv/PO5+7nkHU4tKKBGhwaYzww/EedPpaTjXm+U0+OAzxYqsczWZO7c8AmuIsRBSRTA2Ms3vyV2KGhTVA5TbYwCNrSI05I5qFpdlz63BAdaWaoKwVyQnXcwARYWik2ksF5ha5W59TYZTPTlGkk3g3HkLtN2uCfmz2mU7s=
+  on:
+    tags: true
+    repo: coveo/magicbox
