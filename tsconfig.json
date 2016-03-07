@@ -32,7 +32,6 @@
         "src/Result/Result.ts",
         "src/SuggestionsManager.ts",
         "src/Utils.ts",
-        "lib/jquery.d.ts",
         "lib/underscore.d.ts"
     ],
     "exclude": []

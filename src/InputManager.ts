@@ -23,7 +23,6 @@ module Coveo.MagicBox {
     public onchangecursor: () => void;
 
     constructor(private element: HTMLElement, private onchange: (text: string, wordCompletion:boolean) => void) {
-
       this.underlay = document.createElement('div');
       this.underlay.className = "magic-box-underlay";
       element.appendChild(this.underlay);
@@ -134,7 +133,7 @@ module Coveo.MagicBox {
     * Set cursor position
     */
     public setCursor(index: number) {
-      $(this.input).focus();
+      this.input.focus();
       if (this.input.createTextRange) {
         var range = this.input.createTextRange();
         range.move("character", index);

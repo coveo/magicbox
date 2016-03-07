@@ -1,4 +1,3 @@
-/// <reference path="../bin/jquery.d.ts" />
 /// <reference path="../bin/underscore.d.ts" />
 /// <reference path="../bin/promise.d.ts" />
 /// <reference path="./Grammar.ts" />
@@ -40,7 +39,9 @@ module Coveo.MagicBox {
         this.options.inline = false;
       }
       $$(element).addClass('magic-box');
-      $$(element).toggleClass('magic-box-inline', this.options.inline);
+      if (this.options.inline) {
+        $$(element).addClass('magic-box-inline');
+      }
 
       this.result = this.grammar.parse('');
       this.displayedResult = this.result.clean();
@@ -92,7 +93,7 @@ module Coveo.MagicBox {
     }
 
     public setText(text: string) {
-      $(this.element).toggleClass('magic-box-notEmpty', text.length > 0);
+      $$(this.element).toggleClass('magic-box-notEmpty', text.length > 0);
 
       this.result = this.grammar.parse(text);
       this.displayedResult = this.result.clean();
@@ -114,7 +115,7 @@ module Coveo.MagicBox {
 
     private setupHandler() {
       this.inputManager.onblur = () => {
-        $(this.element).removeClass('magic-box-hasFocus');
+        $$(this.element).removeClass('magic-box-hasFocus');
         if (!this.options.inline) {
           this.clearSuggestion();
         }
@@ -122,7 +123,7 @@ module Coveo.MagicBox {
       }
 
       this.inputManager.onfocus = () => {
-        $(this.element).addClass('magic-box-hasFocus');
+        $$(this.element).addClass('magic-box-hasFocus');
         this.showSuggestion();
         this.onfocus && this.onfocus();
       }
@@ -200,7 +201,7 @@ module Coveo.MagicBox {
     }
 
     public focus() {
-      $(this.element).addClass('magic-box-hasFocus');
+      $$(this.element).addClass('magic-box-hasFocus');
       this.inputManager.focus();
     }
 

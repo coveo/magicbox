@@ -1,6 +1,7 @@
 # Magic Box
-> A search box on steroid
 [![Build Status](https://travis-ci.org/coveo/magicbox.svg?branch=master)](https://travis-ci.org/coveo/magicbox)
+
+> A search box on steroid
 
 ## Preview
 Magic Box allows to create a search box designed to show auto completions based on a grammar

@@ -10,7 +10,7 @@ ts.reporter.longReporter();
 
 
 gulp.task('default', function () {
-  return runSequence(['buildSass', 'buildMagicBox'], ['test', 'uglify']);
+  return runSequence(['buildSass', 'buildMagicBox'], ['uglify', 'test']);
 });
 
 gulp.task('buildSass', function () {

@@ -6,7 +6,6 @@
   <title>SmartUi</title>
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0,  maximum-scale=1.0, user-scalable=0">
 
-  <script type="text/javascript" src="node_modules/jquery/dist/jquery.js"></script>
   <script type="text/javascript" src="node_modules/underscore/underscore.js"></script>
   <script type="application/javascript" src="bin/MagicBox.js"></script>
   <link rel="stylesheet" type="text/css" href="bin/css/MagicBox.css" />
@@ -30,37 +29,41 @@
     <div id="mb"></div>
   </div>
   <script>
-    var magicbox;
-    $(function () {
-      magicbox = new Coveo.MagicBox.create($('#mb').get(0), Coveo.MagicBox.Grammars.ExpressionsGrammar(Coveo.MagicBox.Grammars.Complete), {
+    (function () {
+      var magicbox = new Coveo.MagicBox.create(document.getElementById('mb'),
+        Coveo.MagicBox.Grammars.ExpressionsGrammar(Coveo.MagicBox.Grammars.Complete), {
         suggestionTimeout: 500
       });
-        magicbox.getSuggestions = function () {
-          var promise = new Promise(function (resolve, reject) {
-            resolve([{text: 'Abc'}, {text: 'Def'}, {text: 'Ghi'}]);
-          })
 
-          var promise2 = new Promise(function (resolve, reject) {
-            setTimeout(function () {
-              resolve([{text: 'yoo'}])
-            }, 1500)
-          })
+      magicbox.getSuggestions = function () {
+        // Will always resolve
+        var promise = new Promise(function (resolve, reject) {
+          resolve([{text: 'Abc'}, {text: 'Def'}, {text: 'Ghi'}]);
+        })
 
-          var promise3 = new Promise(function (resolve, reject) {
-            setTimeout(function () {
-              var currentText = magicbox.getText();
-              if (currentText) {
-                resolve([{text: magicbox.getText()}])
-              } else {
-                resolve(undefined)
-              }
-            }, 200)
-          })
+        // Will always timeout
+        var promise2 = new Promise(function (resolve, reject) {
+          setTimeout(function () {
+            resolve([{text: 'yoo'}])
+          }, 1500)
+        })
+
+        // Will resolve with current text only if not empty, after 200 ms
+        var promise3 = new Promise(function (resolve, reject) {
+          setTimeout(function () {
+            var currentText = magicbox.getText();
+            if (currentText) {
+              resolve([{text: magicbox.getText()}])
+            } else {
+              resolve(undefined)
+            }
+          }, 200)
+        })
 
 
           return [promise, promise2, promise3];
         }
-    })
+    })()
   </script>
 </body>
 

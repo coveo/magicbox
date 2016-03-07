@@ -225,6 +225,14 @@ module Coveo.MagicBox.Utils {
       this.el.className = this.el.className.replace(new RegExp(`(^|\\s)${className}(\\s|\\b)`, 'g'), '$1');
     }
 
+    public toggleClass(className: string, toggle: boolean) {
+      if (toggle) {
+        this.addClass(className);
+      } else {
+        this.removeClass(className);
+      }
+    }
+
     /**
      * Return an array with all the classname on the element. Empty array if the element has not classname
      * @returns {any|Array}
