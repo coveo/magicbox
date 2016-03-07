@@ -1,5 +1,6 @@
 /// <reference path="../bin/jquery.d.ts" />
 /// <reference path="../bin/underscore.d.ts" />
+/// <reference path="../bin/promise.d.ts" />
 /// <reference path="./Grammar.ts" />
 /// <reference path="./InputManager.ts"/>
 /// <reference path="./SuggestionsManager.ts"/>
