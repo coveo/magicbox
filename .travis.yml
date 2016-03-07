@@ -7,6 +7,7 @@ before_script:
 script:
 - gulp buildSass
 - gulp buildMagicBox
+- gulp test
 after_success:
 - gulp uglify
 cache:

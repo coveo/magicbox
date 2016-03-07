@@ -23,14 +23,23 @@ gulp.task('buildMagicBox', ['copyLib'], function () {
   var result = gulp.src('src/MagicBox.ts')
       .pipe(ts({
         sortOutput: true,
-        noEmitOnError: true,
         declaration: true,
-        out: 'bin/MagicBox.js'
+        out: 'bin/MagicBox.js',
+        noEmitOnError: true
       }));
-  return merge([
-    result.dts.pipe(concat('MagicBox.d.ts')).pipe(gulp.dest('bin/')),
-    result.js.pipe(concat('MagicBox.js')).pipe(gulp.dest('bin/'))
-  ]);
+
+  result.on('error', function () {
+    result.emit('end')
+    process.exit(1);
+  })
+
+  result.on('success', function () {
+    return merge([
+      result.dts.pipe(concat('MagicBox.d.ts')).pipe(gulp.dest('bin/')),
+      result.js.pipe(concat('MagicBox.js')).pipe(gulp.dest('bin/'))
+    ]);
+  })
+
 });
 
 
