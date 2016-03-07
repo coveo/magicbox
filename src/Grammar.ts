@@ -20,7 +20,6 @@ module Coveo.MagicBox {
     public expressions: { [id: string]: Expression } = {};
 
     constructor(start: string, expressions: { [id: string]: ExpressionDef } = {}) {
-      var a: boolean = 1;
       this.start = new ExpressionRef(start, null, 'start', this);
       this.addExpressions(expressions);
     }

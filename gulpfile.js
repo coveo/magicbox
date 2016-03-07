@@ -63,13 +63,14 @@ gulp.task('buildTest', function () {
 });
 
 gulp.task('test', ['buildTest'], function () {
-  return gulp.src([
+  var result = gulp.src([
     'node_modules/underscore/underscore.js',
     'node_modules/jquery/dist/jquery.js',
     'bin/MagicBox.js',
     'bin/test.js'
   ]).pipe(jasmine({
-    integration: true
+    integration: true,
+    abortOnFail: true
   }));
 });
 

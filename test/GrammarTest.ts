@@ -15,7 +15,7 @@ describe('Grammar Expression Builder build expression of type', () => {
 
     exp = <Coveo.MagicBox.ExpressionRef>Coveo.MagicBox.Grammar.buildExpression('[foo?]', 'id', null);
     expect(exp).toEqual(jasmine.any(Coveo.MagicBox.ExpressionRef));
-    expect(exp.ref).toBe('foo');
+    expect(exp.ref).toBe('foo2');
     expect(exp.occurrence).toBe('?');
 
     exp = <Coveo.MagicBox.ExpressionRef>Coveo.MagicBox.Grammar.buildExpression('[foo{2}]', 'id', null);
