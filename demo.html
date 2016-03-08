@@ -13,12 +13,18 @@
     body {
       background: #EEEEEE;
     }
-
-    [data-id="BasicExpression"] {
-      background: #fcc
+    .magic-box-underlay [data-id="FieldQuery"][data-success="true"], 
+    .magic-box-underlay [data-id="FieldSimpleQuery"][data-success="true"] {
+        background-color: #c8e6c9;
     }
+
+    .magic-box-underlay [data-id="FieldQuery"][data-success="false"] > [data-success="true"] , 
+    .magic-box-underlay [data-id="FieldSimpleQuery"][data-success="false"] > [data-success="true"] {
+        background-color: #ffecb3;
+    }
+      
     .wrapper {
-      max-width: 300px;
+      max-width: 600px;
       margin: 10% auto;
     }
   </style>
@@ -41,13 +47,6 @@
           resolve([{text: 'Abc'}, {text: 'Def'}, {text: 'Ghi'}]);
         })
 
-        // Will always timeout
-        var promise2 = new Promise(function (resolve, reject) {
-          setTimeout(function () {
-            resolve([{text: 'yoo'}])
-          }, 1500)
-        })
-
         // Will resolve with current text only if not empty, after 200 ms
         var promise3 = new Promise(function (resolve, reject) {
           setTimeout(function () {
@@ -57,9 +56,9 @@
             } else {
               resolve(undefined)
             }
-          }, 200)
+          }, 20)
         })
-        return [promise, promise2, promise3];
+        return [promise, promise3];
       }
     })()
   </script>

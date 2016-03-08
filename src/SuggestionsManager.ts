@@ -6,7 +6,7 @@ module Coveo.MagicBox {
     index?: number;
     html?: string;
     dom?: HTMLElement;
-    seperator?: string;
+    separator?: string;
     onSelect?: () => void;
   }
 
@@ -125,7 +125,9 @@ module Coveo.MagicBox {
           if (timeout) {
             clearTimeout(timeout);
           }
-          if (promise == this.pendingSuggestion || (this.pendingSuggestion == null)) {
+          if (results.length == 0) {
+            resolve([]);
+          } else if (promise == this.pendingSuggestion || (this.pendingSuggestion == null)) {
             resolve(results.sort((a, b)=> b.index - a.index));
           } else {
             reject('new request queued');
@@ -173,11 +175,11 @@ module Coveo.MagicBox {
             dom.innerHTML = suggestion.html;
           } else if (suggestion.text != null) {
             dom.appendChild(document.createTextNode(suggestion.text));
-          } else if (suggestion.seperator != null) {
+          } else if (suggestion.separator != null) {
             dom.className = 'magic-box-suggestion-seperator';
             var suggestionLabel = document.createElement('div');
             suggestionLabel.className = 'magic-box-suggestion-seperator-label';
-            suggestionLabel.appendChild(document.createTextNode(suggestion.seperator))
+            suggestionLabel.appendChild(document.createTextNode(suggestion.separator))
             dom.appendChild(suggestionLabel)
           }
           $$(dom).on("click keyboardSelect", suggestion.onSelect);
