@@ -10,7 +10,7 @@ It works by first declaring a grammar, then specifying a function to provide sug
 
 It will display shadow text as well as allow to navigate using keyboard
 
-![Preview](http://i.imgur.com/zVQvLRt.gifv)
+![Preview](magicbox.gif)
 
 ## Initialization
 See demo.html for examples
