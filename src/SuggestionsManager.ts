@@ -25,6 +25,10 @@ module Coveo.MagicBox {
         selectableClass: 'magic-box-suggestion',
         selectedClass: 'magic-box-selected'
       });
+      // Put in a sane default, so as to not reject every suggestions if not set on initialization
+      if(this.options.timeout == undefined) {
+        this.options.timeout = 500;
+      }
       this.element.onmouseover = (e) => {
         if ($$(<HTMLElement>e.target).hasClass(this.options.selectableClass)) {
           var selected = this.element.getElementsByClassName(this.options.selectedClass);
@@ -95,6 +99,8 @@ module Coveo.MagicBox {
     public mergeSuggestions(suggestions: Array<Promise<Suggestion[]> | Suggestion[]>, callback?: (suggestions: Suggestion[]) => void) {
       var results: Suggestion[] = [];
       var timeout;
+      // clean empty / null values in the array of suggestions
+      suggestions = _.compact(suggestions);
       var promise = this.pendingSuggestion = new Promise<Suggestion>((resolve, reject)=> {
 
         // Concat all promises results together in one flat array.
