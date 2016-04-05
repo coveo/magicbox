@@ -361,13 +361,13 @@ describe('Coveo Field Grammar parse correctly', () => {
     var result = coveoGrammar.parse('@fieldName<now-1d');
     expect(result.isSuccess()).toBeTruthy();
   });
-  it('"@fieldName<10...420"', () => {
-    var result = coveoGrammar.parse('@fieldName<10...420');
+  it('"@fieldName<10..420"', () => {
+    var result = coveoGrammar.parse('@fieldName<10..420');
     expect(result.isSuccess()).toBeFalsy();
     expect(result.getHumanReadableExpect()).toBe('Expected Spaces or end of input but "." found.');
   });
-  it('"@fieldName=10...420"', () => {
-    var result = coveoGrammar.parse('@fieldName=10...420');
+  it('"@fieldName=10..420"', () => {
+    var result = coveoGrammar.parse('@fieldName=10..420');
     expect(result.isSuccess()).toBeTruthy();
   });
   it('"@fieldName=420"', () => {

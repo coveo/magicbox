@@ -19,7 +19,7 @@ module Coveo.MagicBox.Grammars {
       FieldValueStringList: '[FieldValueSeparator][FieldValueString]',
       FieldValueSeparator: / *, */,
       FieldValueNotQuoted: /[^ \(\),]+/,
-      NumberRange: '[Number][Spaces?]...[Spaces?][Number]'
+      NumberRange: '[Number][Spaces?]..[Spaces?][Number]'
     },
     include: [Date, Basic]
   }
