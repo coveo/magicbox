@@ -216,7 +216,6 @@ describe('Coveo Field Grammar parse correctly', () => {
   });
   it('"word (word2"', () => {
     var result = coveoGrammar.parse('word (word2');
-    console.log(result)
     expect(result.isSuccess()).toBeFalsy();
     expect(result.getHumanReadableExpect()).toBe('Expected ":" or Spaces or ")" but end of input found.');
   });
@@ -331,7 +330,7 @@ describe('Coveo Field Grammar parse correctly', () => {
   it('"[[@field] @sysuri"', () => {
     var result = coveoGrammar.parse('[[@field] @sysuri');
     expect(result.isSuccess()).toBeFalsy();
-    expect(result.getHumanReadableExpect()).toBe('Expected FieldOperator or Spaces or "]" but end of input found.');
+    expect(result.getHumanReadableExpect()).toBe('Expected FieldQueryOperation or Spaces or "]" but end of input found.');
   });
   it('"[[@field] @sysuri]"', () => {
     var result = coveoGrammar.parse('[[@field] @sysuri]');
@@ -347,6 +346,36 @@ describe('Coveo Field Grammar parse correctly', () => {
   });
   it('"end with space "', () => {
     var result = coveoGrammar.parse('end with space ');
+    expect(result.isSuccess()).toBeTruthy();
+  });
+  it('"@fieldName<now"', () => {
+    var result = coveoGrammar.parse('@fieldName<now');
+    expect(result.isSuccess()).toBeTruthy();
+  });
+  it('"@fieldName<now-d"', () => {
+    var result = coveoGrammar.parse('@fieldName<now-d');
+    expect(result.isSuccess()).toBeFalsy();
+    expect(result.getHumanReadableExpect()).toBe('Expected DateRelativeNegativeRef or Spaces or end of input but "-" found.');
+  });
+  it('"@fieldName<now-1d"', () => {
+    var result = coveoGrammar.parse('@fieldName<now-1d');
+    expect(result.isSuccess()).toBeTruthy();
+  });
+  it('"@fieldName<10...420"', () => {
+    var result = coveoGrammar.parse('@fieldName<10...420');
+    expect(result.isSuccess()).toBeFalsy();
+    expect(result.getHumanReadableExpect()).toBe('Expected Spaces or end of input but "." found.');
+  });
+  it('"@fieldName=10...420"', () => {
+    var result = coveoGrammar.parse('@fieldName=10...420');
+    expect(result.isSuccess()).toBeTruthy();
+  });
+  it('"@fieldName=420"', () => {
+    var result = coveoGrammar.parse('@fieldName=420');
+    expect(result.isSuccess()).toBeTruthy();
+  });
+  it('"@fieldName<420"', () => {
+    var result = coveoGrammar.parse('@fieldName<420');
     expect(result.isSuccess()).toBeTruthy();
   });
 });

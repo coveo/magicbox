@@ -26,19 +26,19 @@ module Coveo.MagicBox {
         selectedClass: 'magic-box-selected'
       });
       // Put in a sane default, so as to not reject every suggestions if not set on initialization
-      if(this.options.timeout == undefined) {
+      if (this.options.timeout == undefined) {
         this.options.timeout = 500;
       }
       this.element.onmouseover = (e) => {
         if ($$(<HTMLElement>e.target).hasClass(this.options.selectableClass)) {
           var selected = this.element.getElementsByClassName(this.options.selectedClass);
           for (var i = 0; i < selected.length; i++) {
-            var elem = <HTMLElement>selected.item(i)
+            var elem = <HTMLElement>selected.item(i);
             $$(elem).removeClass(this.options.selectedClass);
           }
           $$(<HTMLElement>e.target).addClass(this.options.selectedClass);
         }
-      }
+      };
       this.element.onmouseout = (e) => {
         if ($$(<HTMLElement>e.target).hasClass(this.options.selectableClass)) {
           $$(<HTMLElement>e.target).removeClass(this.options.selectedClass);
@@ -63,7 +63,7 @@ module Coveo.MagicBox {
         index = 0;
       }
       selected = selectables.item(index);
-      $$(selected).addClass(this.options.selectedClass);
+      if (selected != null) $$(selected).addClass(this.options.selectedClass);
       return selected && selected['suggestion'];
     }
 
@@ -84,7 +84,7 @@ module Coveo.MagicBox {
         index = selectables.length - 1;
       }
       selected = selectables.item(index);
-      $$(selected).addClass(this.options.selectedClass);
+      if (selected != null) $$(selected).addClass(this.options.selectedClass);
       return selected && selected['suggestion'];
     }
 
@@ -109,13 +109,13 @@ module Coveo.MagicBox {
           var shouldRejectPart = false;
           setTimeout(function () {
             shouldRejectPart = true;
-          }, this.options.timeout)
+          }, this.options.timeout);
           sugg.then((item: Suggestion[])=> {
             if (!shouldRejectPart && item) {
               results = results.concat(item);
             }
           })
-        })
+        });
 
         // Resolve the promise when one of those conditions is met first :
         // - All suggestions resolved
@@ -132,7 +132,7 @@ module Coveo.MagicBox {
           } else {
             reject('new request queued');
           }
-        }
+        };
 
         if (suggestions.length == 0) {
           onResolve();
@@ -148,7 +148,7 @@ module Coveo.MagicBox {
         Promise.all(suggestions)
             .then(()=> onResolve())
 
-      })
+      });
 
       promise.then((suggestions: Suggestion[])=> {
         if (callback) {
@@ -157,8 +157,6 @@ module Coveo.MagicBox {
         this.updateSuggestions(suggestions);
         return suggestions;
       }).catch(()=> {
-
-        // Catch rejection so as not to get errors in dev console
         return null;
       })
     }
@@ -179,7 +177,7 @@ module Coveo.MagicBox {
             dom.className = 'magic-box-suggestion-seperator';
             var suggestionLabel = document.createElement('div');
             suggestionLabel.className = 'magic-box-suggestion-seperator-label';
-            suggestionLabel.appendChild(document.createTextNode(suggestion.separator))
+            suggestionLabel.appendChild(document.createTextNode(suggestion.separator));
             dom.appendChild(suggestionLabel)
           }
           $$(dom).on("click keyboardSelect", suggestion.onSelect);
@@ -187,7 +185,7 @@ module Coveo.MagicBox {
         } else {
           // this need to be done if the selection is in cache and the dom is set in the suggestion
           $$(dom).removeClass(this.options.selectedClass);
-          var found = $$(dom).find('.' + this.options.selectableClass)
+          var found = $$(dom).find('.' + this.options.selectableClass);
           $$(found).removeClass(this.options.selectedClass);
         }
         dom['suggestion'] = suggestion;

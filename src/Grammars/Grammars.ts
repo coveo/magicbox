@@ -6,6 +6,8 @@
 
 /// <reference path="SubExpression.ts" />
 
+/// <reference path="Date.ts" />
+
 /// <reference path="Field.ts" />
 
 /// <reference path="QueryExtension.ts" />

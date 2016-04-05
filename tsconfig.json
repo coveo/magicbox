@@ -17,6 +17,7 @@
         "src/Expression/ExpressionRegExp.ts",
         "src/Grammar.ts",
         "src/Grammars/Basic.ts",
+        "src/Grammars/Date.ts",
         "src/Grammars/Complete.ts",
         "src/Grammars/Expressions.ts",
         "src/Grammars/Field.ts",
