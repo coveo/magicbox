@@ -12,14 +12,14 @@ module Coveo.MagicBox.Grammars {
       FieldName: /[a-zA-Z][a-zA-Z0-9\.\_]*/,
       FieldOperator: /==|=|<>/,
       FieldOperatorNumeric: /<|>|<=|>=/,
-      FieldValue: ['FieldValueList', 'FieldValueString', 'DateRange', 'NumberRange', 'DateRelative', 'Date', 'Number'],
+      FieldValue: ['DateRange', 'NumberRange', 'DateRelative', 'Date', 'Number', 'FieldValueList', 'FieldValueString'],
       FieldValueNumeric: ['DateRelative', 'Date', 'Number'],
       FieldValueString: ['DoubleQuoted', 'FieldValueNotQuoted'],
       FieldValueList: '([FieldValueString][FieldValueStringList*])',
       FieldValueStringList: '[FieldValueSeparator][FieldValueString]',
       FieldValueSeparator: / *, */,
       FieldValueNotQuoted: /[^ \(\),]+/,
-      NumberRange: '[Number][Spaces?]..[Spaces?][Number]'
+      NumberRange: '[Number][Spaces?]...[Spaces?][Number]'
     },
     include: [Date, Basic]
   }
