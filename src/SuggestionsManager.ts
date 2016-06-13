@@ -180,7 +180,12 @@ module Coveo.MagicBox {
             suggestionLabel.appendChild(document.createTextNode(suggestion.separator));
             dom.appendChild(suggestionLabel)
           }
-          $$(dom).on("click keyboardSelect", suggestion.onSelect);
+          $$(dom).on('click', ()=> {
+            suggestion.onSelect();
+          });
+          $$(dom).on('keyboardSelect', ()=> {
+            suggestion.onSelect();
+          });
           $$(dom).addClass(this.options.selectableClass);
         } else {
           // this need to be done if the selection is in cache and the dom is set in the suggestion
