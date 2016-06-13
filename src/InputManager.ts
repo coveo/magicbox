@@ -21,6 +21,7 @@ module Coveo.MagicBox {
     public onkeyup: (key: number) => boolean;
     public onkeydown: (key: number) => boolean;
     public onchangecursor: () => void;
+    public ontabpress: ()=> void;
 
     constructor(private element: HTMLElement, private onchange: (text: string, wordCompletion:boolean) => void) {
       this.underlay = document.createElement('div');
@@ -247,6 +248,7 @@ module Coveo.MagicBox {
     private tabPress() {
       if (this.wordCompletion != null) {
         this.input.value = this.wordCompletion;
+        this.ontabpress && this.ontabpress();
         this.onchange(this.wordCompletion, true);
       }
     }

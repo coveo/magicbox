@@ -22,6 +22,8 @@ module Coveo.MagicBox {
     public onsubmit: () => void;
     public onselect: (suggestion: Suggestion) => void;
     public onclear: () => void;
+    public onmove: ()=> void;
+    public ontabpress: ()=> void;
 
     public getSuggestions: () => Array<Promise<Suggestion[]> | Suggestion[]>;
 
@@ -68,6 +70,8 @@ module Coveo.MagicBox {
           this.onselect && this.onselect(this.getFirstSuggestionText());
         }
       });
+
+      this.inputManager.ontabpress = this.ontabpress;
 
       this.inputManager.setResult(this.displayedResult);
 
@@ -116,29 +120,16 @@ module Coveo.MagicBox {
     private setupHandler() {
       this.inputManager.onblur = () => {
         $$(this.element).removeClass('magic-box-hasFocus');
+        this.onblur && this.onblur();
         if (!this.options.inline) {
           this.clearSuggestion();
         }
-        this.onblur && this.onblur();
       }
 
       this.inputManager.onfocus = () => {
         $$(this.element).addClass('magic-box-hasFocus');
         this.showSuggestion();
         this.onfocus && this.onfocus();
-      }
-
-      this.inputManager.onkeyup = (key: number) => {
-        if (key == 38) { // Up
-          this.focusOnSuggestion(this.suggestionsManager.moveUp());
-          this.onchange && this.onchange();
-        } else if (key == 40) { // Down
-          this.focusOnSuggestion(this.suggestionsManager.moveDown());
-          this.onchange && this.onchange();
-        } else {
-          return true;
-        }
-        return false;
       }
 
       this.inputManager.onkeydown = (key: number) => {
@@ -163,9 +154,11 @@ module Coveo.MagicBox {
 
       this.inputManager.onkeyup = (key: number) => {
         if (key == 38) { // Up
+          this.onmove && this.onmove();
           this.focusOnSuggestion(this.suggestionsManager.moveUp());
           this.onchange && this.onchange();
         } else if (key == 40) { // Down
+          this.onmove && this.onmove();
           this.focusOnSuggestion(this.suggestionsManager.moveDown());
           this.onchange && this.onchange();
         } else {
