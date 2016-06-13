@@ -71,7 +71,9 @@ module Coveo.MagicBox {
         }
       });
 
-      this.inputManager.ontabpress = this.ontabpress;
+      this.inputManager.ontabpress = ()=> {
+        this.ontabpress && this.ontabpress();
+      }
 
       this.inputManager.setResult(this.displayedResult);
 
