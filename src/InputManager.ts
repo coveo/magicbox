@@ -207,13 +207,8 @@ module Coveo.MagicBox {
     private keydown(e: KeyboardEvent) {
       switch (e.keyCode || e.which) {
         case 9: // Tab key
-        console.log(this.magicBox);
-        console.log('Current displayed result: ', this.magicBox.getDisplayedResult());
           if (this.magicBox.hasSuggestions()) {
-            console.log('Pressed tab while having suggestions');
             e.preventDefault();
-          } else {
-            console.log('Pressed tab while not having suggestions');
           }
           break;
         default:
