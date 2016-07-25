@@ -22,8 +22,8 @@ module Coveo.MagicBox {
     public onsubmit: () => void;
     public onselect: (suggestion: Suggestion) => void;
     public onclear: () => void;
-    public onmove: ()=> void;
-    public ontabpress: ()=> void;
+    public onmove: () => void;
+    public ontabpress: () => void;
 
     public getSuggestions: () => Array<Promise<Suggestion[]> | Suggestion[]>;
 
@@ -69,9 +69,9 @@ module Coveo.MagicBox {
           this.setText(text);
           this.onselect && this.onselect(this.getFirstSuggestionText());
         }
-      });
+      }, this);
 
-      this.inputManager.ontabpress = ()=> {
+      this.inputManager.ontabpress = () => {
         this.ontabpress && this.ontabpress();
       }
 
@@ -237,6 +237,10 @@ module Coveo.MagicBox {
       this.showSuggestion();
       this.focus();
       this.onclear && this.onclear();
+    }
+
+    public hasSuggestions() {
+      return this.suggestionsManager.hasSuggestions;
     }
   }
 

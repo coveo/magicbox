@@ -21,9 +21,9 @@ module Coveo.MagicBox {
     public onkeyup: (key: number) => boolean;
     public onkeydown: (key: number) => boolean;
     public onchangecursor: () => void;
-    public ontabpress: ()=> void;
+    public ontabpress: () => void;
 
-    constructor(private element: HTMLElement, private onchange: (text: string, wordCompletion:boolean) => void) {
+    constructor(private element: HTMLElement, private onchange: (text: string, wordCompletion: boolean) => void, private magicBox: Instance) {
       this.underlay = document.createElement('div');
       this.underlay.className = "magic-box-underlay";
       element.appendChild(this.underlay);
@@ -206,9 +206,15 @@ module Coveo.MagicBox {
 
     private keydown(e: KeyboardEvent) {
       switch (e.keyCode || e.which) {
-        // TAB
-        case 9:
-          e.preventDefault();
+        case 9: // Tab key
+        console.log(this.magicBox);
+        console.log('Current displayed result: ', this.magicBox.getDisplayedResult());
+          if (this.magicBox.hasSuggestions()) {
+            console.log('Pressed tab while having suggestions');
+            e.preventDefault();
+          } else {
+            console.log('Pressed tab while not having suggestions');
+          }
           break;
         default:
           e.stopPropagation();
@@ -229,10 +235,8 @@ module Coveo.MagicBox {
         case 9:
           this.tabPress();
           break;
-        // Left
-        // Right
-        case 37:
-        case 39:
+        case 37: // Left
+        case 39: // Right
           this.onchangecursor();
           break;
         default:

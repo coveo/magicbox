@@ -19,6 +19,7 @@ module Coveo.MagicBox {
   export class SuggestionsManager {
     private pendingSuggestion: Promise<Suggestion[]>;
     private options: SuggestionsManagerOptions;
+    public hasSuggestions: boolean;
 
     constructor(private element: HTMLElement, options?: SuggestionsManagerOptions) {
       this.options = _.defaults(options, <SuggestionsManagerOptions>{
@@ -29,6 +30,9 @@ module Coveo.MagicBox {
       if (this.options.timeout == undefined) {
         this.options.timeout = 500;
       }
+
+      this.hasSuggestions = false;
+
       this.element.onmouseover = (e) => {
         if ($$(<HTMLElement>e.target).hasClass(this.options.selectableClass)) {
           var selected = this.element.getElementsByClassName(this.options.selectedClass);
@@ -198,8 +202,10 @@ module Coveo.MagicBox {
       });
       if (suggestions.length > 0) {
         $$(this.element).addClass('magic-box-hasSuggestion');
+        this.hasSuggestions = true;
       } else {
         $$(this.element).removeClass('magic-box-hasSuggestion');
+        this.hasSuggestions = false;
       }
     }
   }
