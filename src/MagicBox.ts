@@ -54,6 +54,7 @@ module Coveo.MagicBox {
 
       var icon = document.createElement('div');
       icon.className = "magic-box-icon";
+      icon.setAttribute('tabindex', '0');
       this.clearDom.appendChild(icon);
 
       var inputContainer = document.createElement('div');
