@@ -50,6 +50,9 @@ module Coveo.MagicBox {
     private updateInput() {
       if (this.input.value != this.result.input) {
         this.input.value = this.result.input;
+        if(this.hasFocus) {
+          this.setCursor(this.getValue().length);
+        }
       }
     }
 
@@ -195,6 +198,7 @@ module Coveo.MagicBox {
       // neet a timeout for IE8-9
       setTimeout(() => {
         this.input.focus();
+        this.setCursor(this.getValue().length);
       });
     }
 
