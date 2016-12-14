@@ -12,6 +12,7 @@ module Coveo.MagicBox {
     private wordCompletion: string;
 
     private hasFocus: boolean = false;
+    private justPressedTab: boolean = false;
 
     /**
     * Binding event
@@ -41,7 +42,6 @@ module Coveo.MagicBox {
       this.input.setAttribute('form', 'coveo-dummy-form');
       this.input.setAttribute('autocomplete', 'off');
       element.appendChild(this.input);
-
       this.setupHandler();
     }
 
@@ -212,12 +212,18 @@ module Coveo.MagicBox {
     private keydown(e: KeyboardEvent) {
       switch (e.keyCode || e.which) {
         case 9: // Tab key
-          if (this.magicBox.hasSuggestions()) {
-            e.preventDefault();
+          if(!this.justPressedTab) {
+            if (this.magicBox.hasSuggestions()) {
+              e.preventDefault();
+            }  
+          } else {
+            this.blur();
           }
+          this.justPressedTab = true;
           break;
         default:
           e.stopPropagation();
+          this.justPressedTab = false;
           if (this.onkeydown == null || this.onkeydown(e.keyCode || e.which)) {
             requestAnimationFrame(() => {
               this.onInputChange();
@@ -252,9 +258,9 @@ module Coveo.MagicBox {
     private tabPress() {
       if (this.wordCompletion != null) {
         this.input.value = this.wordCompletion;
-        this.ontabpress && this.ontabpress();
-        this.onchange(this.wordCompletion, true);
       }
+      this.ontabpress && this.ontabpress();
+      this.magicBox.showSuggestion();
     }
 
     private onInputChange() {

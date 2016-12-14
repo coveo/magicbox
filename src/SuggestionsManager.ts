@@ -68,7 +68,8 @@ module Coveo.MagicBox {
       }
       selected = selectables.item(index);
       if (selected != null) $$(selected).addClass(this.options.selectedClass);
-      return selected && selected['suggestion'];
+
+      return this.returnMoved(selected);
     }
 
     public moveUp(): Suggestion {
@@ -89,7 +90,23 @@ module Coveo.MagicBox {
       }
       selected = selectables.item(index);
       if (selected != null) $$(selected).addClass(this.options.selectedClass);
-      return selected && selected['suggestion'];
+
+      return this.returnMoved(selected);
+    }
+
+    private returnMoved(selected) {
+      if (selected != null) {
+        
+        if(selected['suggestion']) {
+          return selected['suggestion'];
+        }
+        if(selected instanceof HTMLElement) {
+          return {
+            text : $$(selected).text()
+          }
+        }
+      }
+      return null;
     }
 
     public select() {
