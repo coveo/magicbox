@@ -399,5 +399,11 @@ module Coveo.MagicBox {
    * Convenience wrapper for the {@link Dom} class. Used to do $$(element)
    * @param el HTMLElement to wrap
    */
-  export var $$ = (el: HTMLElement) => new Utils.Dom(el);
+  export var $$ = (el: HTMLElement) => {
+    if (window['Coveo'] && window['Coveo']['$$']) {
+      return window['Coveo']['$$'](el);
+    } else {
+      return new Utils.Dom(el);
+    }
+  }
 }
