@@ -146,6 +146,7 @@ module Coveo.MagicBox {
           return false;
         } else if (key == 27) { // ESC
           this.clearSuggestion();
+          this.blur();
         }
         return true;
       }
