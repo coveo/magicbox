@@ -100,6 +100,9 @@ module Coveo.MagicBox {
         if(selected['suggestion']) {
           return selected['suggestion'];
         }
+        if(selected['no-text-suggestion']) {
+          return null;
+        }
         if(selected instanceof HTMLElement) {
           return {
             text : $$(selected).text()
