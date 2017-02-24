@@ -179,7 +179,7 @@ module Coveo.MagicBox {
       this.input.onclick = () => {
         this.onchangecursor();
       }
-      this.input.select = () => {
+      this.input.onselect = () => {
         this.onchangecursor();
       }
       this.input.oncut = () => {
