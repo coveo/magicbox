@@ -208,29 +208,21 @@ module Coveo.MagicBox {
       var id = this.expression != null ? this.expression.id : null;
 
       if (id != null) {
-        var attId = document.createAttribute("data-id");
-        attId.value = id;
-        element.setAttributeNode(attId);
+        element.setAttribute("data-id", id);
       }
 
-      var attSuccess = document.createAttribute("data-success");
-      attSuccess.value = this.isSuccess().toString();
-      element.setAttributeNode(attSuccess);
+      element.setAttribute("data-success", this.isSuccess().toString());
 
       if (this.value != null) {
-        element.appendChild(document.createTextNode(this.value));
-        var attValue = document.createAttribute("data-value");
-        attValue.value = this.value;
-        element.setAttributeNode(attValue);
+        element.appendChild(document.createTextNode(this.value));        
+        element.setAttribute("data-value", this.value);
       } else if (this.subResults != null) {
         _.each(this.subResults, (subResult: Result) => {
           element.appendChild(subResult.toHtmlElement());
         });
       } else {
         element.appendChild(document.createTextNode(this.input));
-        var attInput = document.createAttribute("data-input");
-        attInput.value = this.input;
-        element.setAttributeNode(attInput);
+        element.setAttribute("data-input", this.input);
         element.className = 'magic-box-error' + (this.input.length > 0 ? '' : ' magic-box-error-empty');
       }
 
