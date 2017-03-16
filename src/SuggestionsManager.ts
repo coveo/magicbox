@@ -33,21 +33,28 @@ module Coveo.MagicBox {
 
       this.hasSuggestions = false;
 
-      this.element.onmouseover = (e) => {
-        if ($$(<HTMLElement>e.target).hasClass(this.options.selectableClass)) {
-          var selected = this.element.getElementsByClassName(this.options.selectedClass);
-          for (var i = 0; i < selected.length; i++) {
-            var elem = <HTMLElement>selected.item(i);
-            $$(elem).removeClass(this.options.selectedClass);
+      $$(this.element).on('mouseover', e => {
+        let target = $$(<HTMLElement>e.target);
+        let parents = target.parents(this.options.selectableClass);
+        if (target.hasClass(this.options.selectableClass)) {
+          this.addSelectedClass(target);
+        } else if(parents && this.element.contains(parents[0])) {
+          this.addSelectedClass(parents[0]);
+        }
+      });
+
+      $$(this.element).on('mouseout', e => {
+        let target = $$(<HTMLElement>e.target);
+        let targetParents = target.parents(this.options.selectableClass);
+        let relatedTargetParents = $$(e.relatedTarget).parents(this.options.selectableClass);
+        if (e.relatedTarget) {
+          if (target.hasClass(this.options.selectedClass) && !$$(e.relatedTarget).hasClass(this.options.selectableClass)) {
+            target.removeClass(this.options.selectedClass);
+          } else if(relatedTargetParents.length == 0 && targetParents.length > 0) {
+            $$(targetParents[0]).removeClass(this.options.selectedClass);
           }
-          $$(<HTMLElement>e.target).addClass(this.options.selectedClass);
         }
-      };
-      this.element.onmouseout = (e) => {
-        if ($$(<HTMLElement>e.target).hasClass(this.options.selectableClass)) {
-          $$(<HTMLElement>e.target).removeClass(this.options.selectedClass);
-        }
-      }
+      });
     }
 
     public moveDown(): Suggestion {
@@ -92,24 +99,6 @@ module Coveo.MagicBox {
       if (selected != null) $$(selected).addClass(this.options.selectedClass);
 
       return this.returnMoved(selected);
-    }
-
-    private returnMoved(selected) {
-      if (selected != null) {
-        
-        if(selected['suggestion']) {
-          return selected['suggestion'];
-        }
-        if(selected['no-text-suggestion']) {
-          return null;
-        }
-        if(selected instanceof HTMLElement) {
-          return {
-            text : $$(selected).text()
-          }
-        }
-      }
-      return null;
     }
 
     public select() {
@@ -227,6 +216,33 @@ module Coveo.MagicBox {
         $$(this.element).removeClass('magic-box-hasSuggestion');
         this.hasSuggestions = false;
       }
+    }
+
+    private returnMoved(selected) {
+      if (selected != null) {
+
+        if(selected['suggestion']) {
+          return selected['suggestion'];
+        }
+        if(selected['no-text-suggestion']) {
+          return null;
+        }
+        if(selected instanceof HTMLElement) {
+          return {
+            text : $$(selected).text()
+          }
+        }
+      }
+      return null;
+    }
+
+    private addSelectedClass(suggestion): void {
+      var selected = this.element.getElementsByClassName(this.options.selectedClass);
+        for (var i = 0; i < selected.length; i++) {
+          var elem = <HTMLElement>selected.item(i);
+          $$(elem).removeClass(this.options.selectedClass);
+        }
+        $$(suggestion).addClass(this.options.selectedClass);
     }
   }
 }

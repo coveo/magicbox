@@ -24,7 +24,7 @@ gulp.task('buildMagicBox', ['copyLib'], function () {
       .pipe(ts({
         sortOutput: true,
         declaration: true,
-        out: 'bin/MagicBox.js',
+        out: 'bin/MagicBox.min.js',
         noEmitOnError: true
       }));
 
@@ -43,7 +43,7 @@ gulp.task('buildMagicBox', ['copyLib'], function () {
 gulp.task('uglify', function () {
   return gulp.src('bin/MagicBox.js')
       .pipe(concat('MagicBox.min.js'))
-      .pipe(uglify())
+      /*.pipe(uglify())*/
       .pipe(gulp.dest('bin/'))
 });
 
@@ -66,7 +66,7 @@ gulp.task('test', ['buildTest'], function () {
     'bin/MagicBox.js',
     'bin/test.js'
   ]).pipe(jasmine({
-    integration: true,
+    integration: true,  
     abortOnFail: true
   }));
 });
