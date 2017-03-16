@@ -24,7 +24,7 @@ gulp.task('buildMagicBox', ['copyLib'], function () {
       .pipe(ts({
         sortOutput: true,
         declaration: true,
-        out: 'bin/MagicBox.min.js',
+        out: 'bin/MagicBox.js',
         noEmitOnError: true
       }));
 
@@ -66,7 +66,7 @@ gulp.task('test', ['buildTest'], function () {
     'bin/MagicBox.js',
     'bin/test.js'
   ]).pipe(jasmine({
-    integration: true,  
+    integration: true,
     abortOnFail: true
   }));
 });
