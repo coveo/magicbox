@@ -43,7 +43,7 @@ gulp.task('buildMagicBox', ['copyLib'], function () {
 gulp.task('uglify', function () {
   return gulp.src('bin/MagicBox.js')
       .pipe(concat('MagicBox.min.js'))
-      /*.pipe(uglify())*/
+      .pipe(uglify())
       .pipe(gulp.dest('bin/'))
 });
 
