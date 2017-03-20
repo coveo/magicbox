@@ -146,13 +146,30 @@ module Coveo.MagicBox.Utils {
     }
 
     /**
-     * Get the first element that matches the classname by testing the element itself and traversing up through its ancestors in the DOM tree.
-     *
+     * Get the first element that matches the selector by testing the element itself and traversing up through its ancestors in the DOM tree.<br/>
      * Stops at the body of the document
-     * @param className A CSS classname
+     * @param selector A CSS selector, a classname
      */
-    public closest(className: string): HTMLElement {
-      return this.traverseAncestorForClass(this.el, className);
+    public closest(selector: string) {
+      var current = this.el, found = false;
+      while (!found) {
+        if ($$(current).hasClass(selector)) {
+          found = true;
+        }
+        if (current.tagName.toLowerCase() == 'body') {
+          break;
+        }
+        if (current.parentElement == null) {
+          break;
+        }
+        if (!found) {
+          current = current.parentElement;
+        }
+      }
+      if (found) {
+        return current;
+      }
+      return undefined;
     }
 
     /**
