@@ -146,30 +146,43 @@ module Coveo.MagicBox.Utils {
     }
 
     /**
-     * Get the first element that matches the selector by testing the element itself and traversing up through its ancestors in the DOM tree.<br/>
+     * Get the first element that matches the classname by testing the element itself and traversing up through its ancestors in the DOM tree.
+     *
      * Stops at the body of the document
-     * @param selector A CSS selector, a classname
+     * @param className A CSS classname
      */
-    public closest(selector: string) {
-      var current = this.el, found = false;
-      while (!found) {
-        if ($$(current).hasClass(selector)) {
-          found = true;
-        }
-        if (current.tagName.toLowerCase() == 'body') {
-          break;
-        }
-        if (current.parentElement == null) {
-          break;
-        }
-        if (!found) {
-          current = current.parentElement;
-        }
+    public closest(className: string): HTMLElement {
+      return this.traverseAncestorForClass(this.el, className);
+    }
+
+    /**
+     * Get the first element that matches the classname by testing the element itself and traversing up through its ancestors in the DOM tree.
+     *
+     * Stops at the body of the document
+     * @returns {any}
+     */
+    public parent(className: string): HTMLElement {
+      if (this.el.parentElement == undefined) {
+        return undefined;
       }
-      if (found) {
-        return current;
+      return this.traverseAncestorForClass(this.el.parentElement, className);
+    }
+
+    /**
+     *  Get all the ancestors of the current element that match the given className
+     *
+     *  Return an empty array if none found.
+     * @param className
+     * @returns {HTMLElement[]}
+     */
+    public parents(className: string): HTMLElement[] {
+      let parentsFound = [];
+      let parentFound = this.parent(className);
+      while (parentFound) {
+        parentsFound.push(parentFound);
+        parentFound = new Dom(parentFound).parent(className);
       }
-      return undefined;
+      return parentsFound;
     }
 
     /**
@@ -382,6 +395,31 @@ module Coveo.MagicBox.Utils {
         node = node.parentNode;
       }
       return false;
+    }
+
+    private traverseAncestorForClass(current = this.el, className: string): HTMLElement {
+      if (className.indexOf('.') == 0) {
+        className = className.substr(1);
+      }
+      var found = false;
+      while (!found) {
+        if ($$(current).hasClass(className)) {
+          found = true;
+        }
+        if (current.tagName.toLowerCase() == 'body') {
+          break;
+        }
+        if (current.parentElement == null) {
+          break;
+        }
+        if (!found) {
+          current = current.parentElement;
+        }
+      }
+      if (found) {
+        return current;
+      }
+      return undefined;
     }
 
     private getJQuery() {

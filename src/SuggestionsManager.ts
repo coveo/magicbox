@@ -34,27 +34,43 @@ module Coveo.MagicBox {
       this.hasSuggestions = false;
 
       $$(this.element).on('mouseover', e => {
-        let target = $$(<HTMLElement>e.target);
-        let parents = target.parents(this.options.selectableClass);
-        if (target.hasClass(this.options.selectableClass)) {
-          this.addSelectedClass(target);
-        } else if(parents && this.element.contains(parents[0])) {
-          this.addSelectedClass(parents[0]);
-        }
+        this.handleMouseOver(e);
       });
 
       $$(this.element).on('mouseout', e => {
-        let target = $$(<HTMLElement>e.target);
-        let targetParents = target.parents(this.options.selectableClass);
-        let relatedTargetParents = $$(e.relatedTarget).parents(this.options.selectableClass);
-        if (e.relatedTarget) {
-          if (target.hasClass(this.options.selectedClass) && !$$(e.relatedTarget).hasClass(this.options.selectableClass)) {
-            target.removeClass(this.options.selectedClass);
-          } else if(relatedTargetParents.length == 0 && targetParents.length > 0) {
-            $$(targetParents[0]).removeClass(this.options.selectedClass);
-          }
-        }
+        this.handleMouseOut(e);
       });
+    }
+
+    public handleMouseOver(e) {
+      let target = $$(<HTMLElement>e.target);
+      let parents = target.parents(this.options.selectableClass);
+      if (target.hasClass(this.options.selectableClass)) {
+        this.addSelectedClass(target.el);
+      } else if(parents.length > 0 && this.element.contains(parents[0])) {
+        this.addSelectedClass(parents[0]);
+      }
+    }
+
+    public handleMouseOut(e) {
+      let target = $$(<HTMLElement>e.target);
+      let targetParents = target.parents(this.options.selectableClass);
+
+      //e.relatedTarget is not available if moving off the browser window
+      if (e.relatedTarget) {
+        let relatedTargetParents = $$(<HTMLElement>e.relatedTarget).parents(this.options.selectableClass);
+        if (target.hasClass(this.options.selectedClass) && !$$(<HTMLElement>e.relatedTarget).hasClass(this.options.selectableClass)) {
+          target.removeClass(this.options.selectedClass);
+        } else if(relatedTargetParents.length == 0 && targetParents.length > 0) {
+          $$(targetParents[0]).removeClass(this.options.selectedClass);
+        }
+      } else {
+        if (target.hasClass(this.options.selectedClass)) {
+          target.removeClass(this.options.selectedClass)
+        } else if (targetParents.length > 0) {
+          $$(targetParents[0]).removeClass(this.options.selectedClass);
+        }
+      }
     }
 
     public moveDown(): Suggestion {
@@ -193,10 +209,10 @@ module Coveo.MagicBox {
             suggestionLabel.appendChild(document.createTextNode(suggestion.separator));
             dom.appendChild(suggestionLabel)
           }
-          $$(dom).on('click', ()=> {
+          $$(dom).on('click', () => {
             suggestion.onSelect();
           });
-          $$(dom).on('keyboardSelect', ()=> {
+          $$(dom).on('keyboardSelect', () => {
             suggestion.onSelect();
           });
           $$(dom).addClass(this.options.selectableClass);
@@ -236,7 +252,7 @@ module Coveo.MagicBox {
       return null;
     }
 
-    private addSelectedClass(suggestion): void {
+    private addSelectedClass(suggestion: HTMLElement): void {
       var selected = this.element.getElementsByClassName(this.options.selectedClass);
         for (var i = 0; i < selected.length; i++) {
           var elem = <HTMLElement>selected.item(i);
