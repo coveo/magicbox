@@ -179,9 +179,6 @@ module Coveo.MagicBox {
       this.input.onclick = () => {
         this.onchangecursor();
       }
-      this.input.onselect = () => {
-        this.onchangecursor();
-      }
       this.input.oncut = () => {
         setTimeout(() => {
           this.onInputChange();
