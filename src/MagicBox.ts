@@ -50,15 +50,22 @@ module Coveo.MagicBox {
 
       this.clearDom = document.createElement('div');
       this.clearDom.className = "magic-box-clear";
-      this.element.appendChild(this.clearDom);
+
 
       var icon = document.createElement('div');
       icon.className = "magic-box-icon";
       this.clearDom.appendChild(icon);
 
-      var inputContainer = document.createElement('div');
-      inputContainer.className = "magic-box-input";
-      element.appendChild(inputContainer);
+      var inputContainer = $$(element).find('.magic-box-input');
+      if (!inputContainer) {
+        inputContainer = document.createElement('div');
+        inputContainer.className = "magic-box-input";
+
+        element.appendChild(this.clearDom);
+        element.appendChild(inputContainer);
+      } else {
+        element.insertBefore(this.clearDom, inputContainer);
+      }
 
       this.inputManager = new InputManager(inputContainer, (text, wordCompletion) => {
         if (!wordCompletion) {
