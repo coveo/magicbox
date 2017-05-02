@@ -27,7 +27,6 @@ module Coveo.MagicBox {
     constructor(private element: HTMLElement, private onchange: (text: string, wordCompletion: boolean) => void, private magicBox: Instance) {
       this.underlay = document.createElement('div');
       this.underlay.className = "magic-box-underlay";
-      element.appendChild(this.underlay);
 
       this.highlightContainer = document.createElement('span');
       this.highlightContainer.className = "magic-box-highlight-container";
@@ -37,11 +36,19 @@ module Coveo.MagicBox {
       this.ghostTextContainer.className = "magic-box-ghost-text";
       this.underlay.appendChild(this.ghostTextContainer);
 
-      this.input = document.createElement('input');
+      this.input = $$(element).find('input');
+      if (!this.input) {
+        this.input = document.createElement('input');
+        element.appendChild(this.underlay);
+        element.appendChild(this.input);
+      } else {
+        element.insertBefore(this.underlay, this.input);
+      }
+
       this.input.spellcheck = false;
       this.input.setAttribute('form', 'coveo-dummy-form');
       this.input.setAttribute('autocomplete', 'off');
-      element.appendChild(this.input);
+
       this.setupHandler();
     }
 
@@ -51,7 +58,7 @@ module Coveo.MagicBox {
     private updateInput() {
       if (this.input.value != this.result.input) {
         this.input.value = this.result.input;
-        if(this.hasFocus) {
+        if (this.hasFocus) {
           this.setCursor(this.getValue().length);
         }
       }
@@ -209,10 +216,10 @@ module Coveo.MagicBox {
     private keydown(e: KeyboardEvent) {
       switch (e.keyCode || e.which) {
         case 9: // Tab key
-          if(!this.justPressedTab) {
+          if (!this.justPressedTab) {
             if (this.magicBox.hasSuggestions()) {
               e.preventDefault();
-            }  
+            }
           } else {
             this.blur();
           }
