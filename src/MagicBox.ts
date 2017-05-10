@@ -82,6 +82,11 @@ module Coveo.MagicBox {
         this.ontabpress && this.ontabpress();
       }
 
+      var existingValue = this.inputManager.getValue();
+      if (existingValue) {
+        this.displayedResult.input = existingValue;
+      }
+
       this.inputManager.setResult(this.displayedResult);
 
       var suggestionsContainer = document.createElement('div');
