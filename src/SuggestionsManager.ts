@@ -47,7 +47,7 @@ module Coveo.MagicBox {
       let parents = target.parents(this.options.selectableClass);
       if (target.hasClass(this.options.selectableClass)) {
         this.addSelectedClass(target.el);
-      } else if(parents.length > 0 && this.element.contains(parents[0])) {
+      } else if (parents.length > 0 && this.element.contains(parents[0])) {
         this.addSelectedClass(parents[0]);
       }
     }
@@ -61,7 +61,7 @@ module Coveo.MagicBox {
         let relatedTargetParents = $$(<HTMLElement>e.relatedTarget).parents(this.options.selectableClass);
         if (target.hasClass(this.options.selectedClass) && !$$(<HTMLElement>e.relatedTarget).hasClass(this.options.selectableClass)) {
           target.removeClass(this.options.selectedClass);
-        } else if(relatedTargetParents.length == 0 && targetParents.length > 0) {
+        } else if (relatedTargetParents.length == 0 && targetParents.length > 0) {
           $$(targetParents[0]).removeClass(this.options.selectedClass);
         }
       } else {
@@ -128,18 +128,20 @@ module Coveo.MagicBox {
     public mergeSuggestions(suggestions: Array<Promise<Suggestion[]> | Suggestion[]>, callback?: (suggestions: Suggestion[]) => void) {
       var results: Suggestion[] = [];
       var timeout;
+      var stillNeedToResolve = true;
       // clean empty / null values in the array of suggestions
       suggestions = _.compact(suggestions);
-      var promise = this.pendingSuggestion = new Promise<Suggestion>((resolve, reject)=> {
+      var promise = this.pendingSuggestion = new Promise<Suggestion>((resolve, reject) => {
 
         // Concat all promises results together in one flat array.
         // If one promise take too long to resolve, simply skip it
-        _.each(suggestions, (sugg: Promise<Suggestion[]>)=> {
+        _.each(suggestions, (sugg: Promise<Suggestion[]>) => {
           var shouldRejectPart = false;
           setTimeout(function () {
             shouldRejectPart = true;
+            stillNeedToResolve = false;
           }, this.options.timeout);
-          sugg.then((item: Suggestion[])=> {
+          sugg.then((item: Suggestion[]) => {
             if (!shouldRejectPart && item) {
               results = results.concat(item);
             }
@@ -150,17 +152,20 @@ module Coveo.MagicBox {
         // - All suggestions resolved
         // - Timeout is reached before all promises have processed -> resolve with what we have so far
         // - No suggestions given (length 0 or undefined)
-        var onResolve = ()=> {
-          if (timeout) {
-            clearTimeout(timeout);
+        var onResolve = () => {
+          if (stillNeedToResolve) {
+            if (timeout) {
+              clearTimeout(timeout);
+            }
+            if (results.length == 0) {
+              resolve([]);
+            } else if (promise == this.pendingSuggestion || (this.pendingSuggestion == null)) {
+              resolve(results.sort((a, b) => b.index - a.index));
+            } else {
+              reject('new request queued');
+            }
           }
-          if (results.length == 0) {
-            resolve([]);
-          } else if (promise == this.pendingSuggestion || (this.pendingSuggestion == null)) {
-            resolve(results.sort((a, b)=> b.index - a.index));
-          } else {
-            reject('new request queued');
-          }
+          stillNeedToResolve = false;
         };
 
         if (suggestions.length == 0) {
@@ -175,17 +180,17 @@ module Coveo.MagicBox {
         }, this.options.timeout);
 
         Promise.all(suggestions)
-            .then(()=> onResolve())
+          .then(() => onResolve())
 
       });
 
-      promise.then((suggestions: Suggestion[])=> {
+      promise.then((suggestions: Suggestion[]) => {
         if (callback) {
           callback(suggestions);
         }
         this.updateSuggestions(suggestions);
         return suggestions;
-      }).catch(()=> {
+      }).catch(() => {
         return null;
       })
     }
@@ -237,15 +242,15 @@ module Coveo.MagicBox {
     private returnMoved(selected) {
       if (selected != null) {
 
-        if(selected['suggestion']) {
+        if (selected['suggestion']) {
           return selected['suggestion'];
         }
-        if(selected['no-text-suggestion']) {
+        if (selected['no-text-suggestion']) {
           return null;
         }
-        if(selected instanceof HTMLElement) {
+        if (selected instanceof HTMLElement) {
           return {
-            text : $$(selected).text()
+            text: $$(selected).text()
           }
         }
       }
@@ -254,11 +259,11 @@ module Coveo.MagicBox {
 
     private addSelectedClass(suggestion: HTMLElement): void {
       var selected = this.element.getElementsByClassName(this.options.selectedClass);
-        for (var i = 0; i < selected.length; i++) {
-          var elem = <HTMLElement>selected.item(i);
-          $$(elem).removeClass(this.options.selectedClass);
-        }
-        $$(suggestion).addClass(this.options.selectedClass);
+      for (var i = 0; i < selected.length; i++) {
+        var elem = <HTMLElement>selected.item(i);
+        $$(elem).removeClass(this.options.selectedClass);
+      }
+      $$(suggestion).addClass(this.options.selectedClass);
     }
   }
 }
