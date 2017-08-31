@@ -146,8 +146,8 @@ module Coveo.MagicBox {
     */
     public setCursor(index: number) {
       this.input.focus();
-      if (this.input.createTextRange) {
-        var range = this.input.createTextRange();
+      if ((<any>this.input).createTextRange) {
+        var range = (<any>this.input).createTextRange();
         range.move("character", index);
         range.select();
       } else if (this.input.selectionStart != null) {
@@ -216,12 +216,8 @@ module Coveo.MagicBox {
     private keydown(e: KeyboardEvent) {
       switch (e.keyCode || e.which) {
         case 9: // Tab key
-          if (!this.justPressedTab) {
-            if (this.magicBox.hasSuggestions()) {
-              e.preventDefault();
-            }
-          } else {
-            this.blur();
+          if (!this.justPressedTab && this.magicBox.hasSuggestions()) {
+            e.preventDefault();
           }
           this.justPressedTab = true;
           break;
