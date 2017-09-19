@@ -1,6 +1,5 @@
 /// <reference path="MagicBox.ts"/>
-module Coveo.MagicBox {
-
+namespace Coveo.MagicBox {
   export interface Suggestion {
     text?: string;
     index?: number;
@@ -21,10 +20,13 @@ module Coveo.MagicBox {
     private options: SuggestionsManagerOptions;
     public hasSuggestions: boolean;
 
-    constructor(private element: HTMLElement, options?: SuggestionsManagerOptions) {
+    constructor(
+      private element: HTMLElement,
+      options?: SuggestionsManagerOptions
+    ) {
       this.options = _.defaults(options, <SuggestionsManagerOptions>{
-        selectableClass: 'magic-box-suggestion',
-        selectedClass: 'magic-box-selected'
+        selectableClass: "magic-box-suggestion",
+        selectedClass: "magic-box-selected"
       });
       // Put in a sane default, so as to not reject every suggestions if not set on initialization
       if (this.options.timeout == undefined) {
@@ -33,11 +35,11 @@ module Coveo.MagicBox {
 
       this.hasSuggestions = false;
 
-      $$(this.element).on('mouseover', e => {
+      $$(this.element).on("mouseover", e => {
         this.handleMouseOver(e);
       });
 
-      $$(this.element).on('mouseout', e => {
+      $$(this.element).on("mouseout", e => {
         this.handleMouseOut(e);
       });
     }
@@ -58,15 +60,25 @@ module Coveo.MagicBox {
 
       //e.relatedTarget is not available if moving off the browser window
       if (e.relatedTarget) {
-        let relatedTargetParents = $$(<HTMLElement>e.relatedTarget).parents(this.options.selectableClass);
-        if (target.hasClass(this.options.selectedClass) && !$$(<HTMLElement>e.relatedTarget).hasClass(this.options.selectableClass)) {
+        let relatedTargetParents = $$(<HTMLElement>e.relatedTarget).parents(
+          this.options.selectableClass
+        );
+        if (
+          target.hasClass(this.options.selectedClass) &&
+          !$$(<HTMLElement>e.relatedTarget).hasClass(
+            this.options.selectableClass
+          )
+        ) {
           target.removeClass(this.options.selectedClass);
-        } else if (relatedTargetParents.length == 0 && targetParents.length > 0) {
+        } else if (
+          relatedTargetParents.length == 0 &&
+          targetParents.length > 0
+        ) {
           $$(targetParents[0]).removeClass(this.options.selectedClass);
         }
       } else {
         if (target.hasClass(this.options.selectedClass)) {
-          target.removeClass(this.options.selectedClass)
+          target.removeClass(this.options.selectedClass);
         } else if (targetParents.length > 0) {
           $$(targetParents[0]).removeClass(this.options.selectedClass);
         }
@@ -74,8 +86,12 @@ module Coveo.MagicBox {
     }
 
     public moveDown(): Suggestion {
-      var selected = <HTMLElement>this.element.getElementsByClassName(this.options.selectedClass).item(0);
-      var selectables = <NodeListOf<HTMLElement>>this.element.getElementsByClassName(this.options.selectableClass);
+      var selected = <HTMLElement>this.element
+        .getElementsByClassName(this.options.selectedClass)
+        .item(0);
+      var selectables = <NodeListOf<
+        HTMLElement
+      >>this.element.getElementsByClassName(this.options.selectableClass);
       var index: number = -1;
       if (selected != null) {
         $$(selected).removeClass(this.options.selectedClass);
@@ -96,8 +112,12 @@ module Coveo.MagicBox {
     }
 
     public moveUp(): Suggestion {
-      var selected = <HTMLElement>this.element.getElementsByClassName(this.options.selectedClass).item(0);
-      var selectables = <NodeListOf<HTMLElement>>this.element.getElementsByClassName(this.options.selectableClass);
+      var selected = <HTMLElement>this.element
+        .getElementsByClassName(this.options.selectedClass)
+        .item(0);
+      var selectables = <NodeListOf<
+        HTMLElement
+      >>this.element.getElementsByClassName(this.options.selectableClass);
       var index: number = -1;
       if (selected != null) {
         $$(selected).removeClass(this.options.selectedClass);
@@ -118,34 +138,40 @@ module Coveo.MagicBox {
     }
 
     public select() {
-      var selected = <HTMLElement>this.element.getElementsByClassName(this.options.selectedClass).item(0);
+      var selected = <HTMLElement>this.element
+        .getElementsByClassName(this.options.selectedClass)
+        .item(0);
       if (selected != null) {
         $$(selected).trigger("keyboardSelect");
       }
       return selected;
     }
 
-    public mergeSuggestions(suggestions: Array<Promise<Suggestion[]> | Suggestion[]>, callback?: (suggestions: Suggestion[]) => void) {
+    public mergeSuggestions(
+      suggestions: Array<Promise<Suggestion[]> | Suggestion[]>,
+      callback?: (suggestions: Suggestion[]) => void
+    ) {
       var results: Suggestion[] = [];
       var timeout;
       var stillNeedToResolve = true;
       // clean empty / null values in the array of suggestions
       suggestions = _.compact(suggestions);
-      var promise = this.pendingSuggestion = new Promise<Suggestion>((resolve, reject) => {
-
+      var promise = (this.pendingSuggestion = new Promise<
+        Suggestion
+      >((resolve, reject) => {
         // Concat all promises results together in one flat array.
         // If one promise take too long to resolve, simply skip it
-        _.each(suggestions, (sugg: Promise<Suggestion[]>) => {
+        _.each(suggestions, (suggestion: Promise<Suggestion[]>) => {
           var shouldRejectPart = false;
-          setTimeout(function () {
+          setTimeout(function() {
             shouldRejectPart = true;
             stillNeedToResolve = false;
           }, this.options.timeout);
-          sugg.then((item: Suggestion[]) => {
+          suggestion.then((item: Suggestion[]) => {
             if (!shouldRejectPart && item) {
               results = results.concat(item);
             }
-          })
+          });
         });
 
         // Resolve the promise when one of those conditions is met first :
@@ -159,10 +185,13 @@ module Coveo.MagicBox {
             }
             if (results.length == 0) {
               resolve([]);
-            } else if (promise == this.pendingSuggestion || (this.pendingSuggestion == null)) {
+            } else if (
+              promise == this.pendingSuggestion ||
+              this.pendingSuggestion == null
+            ) {
               resolve(results.sort((a, b) => b.index - a.index));
             } else {
-              reject('new request queued');
+              reject("new request queued");
             }
           }
           stillNeedToResolve = false;
@@ -175,90 +204,93 @@ module Coveo.MagicBox {
           onResolve();
         }
 
-        timeout = setTimeout(function () {
-          onResolve()
+        timeout = setTimeout(function() {
+          onResolve();
         }, this.options.timeout);
 
-        Promise.all(suggestions)
-          .then(() => onResolve())
+        Promise.all(suggestions).then(() => onResolve());
+      }));
 
-      });
-
-      promise.then((suggestions: Suggestion[]) => {
-        if (callback) {
-          callback(suggestions);
-        }
-        this.updateSuggestions(suggestions);
-        return suggestions;
-      }).catch(() => {
-        return null;
-      })
+      promise
+        .then((suggestions: Suggestion[]) => {
+          if (callback) {
+            callback(suggestions);
+          }
+          this.updateSuggestions(suggestions);
+          return suggestions;
+        })
+        .catch(() => {
+          return null;
+        });
     }
 
     public updateSuggestions(suggestions: Suggestion[]) {
-      this.element.innerHTML = '';
+      this.element.innerHTML = "";
       this.element.className = "magic-box-suggestions";
       _.each(suggestions, (suggestion: Suggestion) => {
         var dom = suggestion.dom;
         if (!dom) {
-          dom = document.createElement('div');
-          dom.className = 'magic-box-suggestion';
+          dom = document.createElement("div");
+          dom.className = "magic-box-suggestion";
           if (suggestion.html != null) {
             dom.innerHTML = suggestion.html;
           } else if (suggestion.text != null) {
             dom.appendChild(document.createTextNode(suggestion.text));
           } else if (suggestion.separator != null) {
-            dom.className = 'magic-box-suggestion-seperator';
-            var suggestionLabel = document.createElement('div');
-            suggestionLabel.className = 'magic-box-suggestion-seperator-label';
-            suggestionLabel.appendChild(document.createTextNode(suggestion.separator));
-            dom.appendChild(suggestionLabel)
+            dom.className = "magic-box-suggestion-seperator";
+            var suggestionLabel = document.createElement("div");
+            suggestionLabel.className = "magic-box-suggestion-seperator-label";
+            suggestionLabel.appendChild(
+              document.createTextNode(suggestion.separator)
+            );
+            dom.appendChild(suggestionLabel);
           }
-          $$(dom).on('click', () => {
+          $$(dom).on("click", () => {
             suggestion.onSelect();
           });
-          $$(dom).on('keyboardSelect', () => {
+          $$(dom).on("keyboardSelect", () => {
             suggestion.onSelect();
           });
           $$(dom).addClass(this.options.selectableClass);
         } else {
           // this need to be done if the selection is in cache and the dom is set in the suggestion
           $$(dom).removeClass(this.options.selectedClass);
-          var found = $$(dom).find('.' + this.options.selectableClass);
+          var found = $$(dom).find("." + this.options.selectableClass);
           $$(found).removeClass(this.options.selectedClass);
         }
-        dom['suggestion'] = suggestion;
+        dom["suggestion"] = suggestion;
         this.element.appendChild(dom);
       });
       if (suggestions.length > 0) {
-        $$(this.element).addClass('magic-box-hasSuggestion');
+        $$(this.element).addClass("magic-box-hasSuggestion");
         this.hasSuggestions = true;
       } else {
-        $$(this.element).removeClass('magic-box-hasSuggestion');
+        $$(this.element).removeClass("magic-box-hasSuggestion");
         this.hasSuggestions = false;
       }
     }
 
     private returnMoved(selected) {
       if (selected != null) {
-
-        if (selected['suggestion']) {
-          return selected['suggestion'];
+        if (selected["suggestion"]) {
+          return selected["suggestion"];
         }
-        if (selected['no-text-suggestion']) {
+        if (selected["no-text-suggestion"]) {
           return null;
         }
         if (selected instanceof HTMLElement) {
           return {
             text: $$(selected).text()
-          }
+          };
         }
       }
       return null;
     }
 
     private addSelectedClass(suggestion: HTMLElement): void {
-      var selected = this.element.getElementsByClassName(this.options.selectedClass);
+      var selected = this.element.getElementsByClassName(
+        this.options.selectedClass
+      );
       for (var i = 0; i < selected.length; i++) {
         var elem = <HTMLElement>selected.item(i);
         $$(elem).removeClass(this.options.selectedClass);
