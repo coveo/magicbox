@@ -378,6 +378,22 @@ describe('Coveo Field Grammar parse correctly', () => {
     var result = coveoGrammar.parse('@fieldName<420');
     expect(result.isSuccess()).toBeTruthy();
   });
+  it('"@fieldName<4.20"', () => {
+    var result = coveoGrammar.parse('@fieldName<4.20');
+    expect(result.isSuccess()).toBeTruthy();
+  });
+  it('"@fieldName<4,20"', () => {
+    var result = coveoGrammar.parse('@fieldName<4,20');
+    expect(result.isSuccess()).toBeFalsy();
+  });
+  it('"@fieldName<-4.20"', () => {
+    var result = coveoGrammar.parse('@fieldName<-4.20');
+    expect(result.isSuccess()).toBeTruthy();
+  });
+  it('"@fieldName<4.20.20"', () => {
+    var result = coveoGrammar.parse('@fieldName<4.20.20');
+    expect(result.isSuccess()).toBeFalsy();
+  });
   it('@fieldName>=2000/01/01', ()=>{
     var result = coveoGrammar.parse('@fieldName>=2000/01/01');
     expect(result.isSuccess()).toBeTruthy();
