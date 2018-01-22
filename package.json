@@ -10,7 +10,7 @@
     "gulp-add-src": "^0.2.0",
     "gulp-concat": "^2.4.3",
     "gulp-foreach": "^0.1.0",
-    "gulp-jasmine-phantom": "^2.0.1",
+    "gulp-jasmine-phantom": "^3.0.0",
     "gulp-less": "^2.0.1",
     "gulp-order": "^1.1.1",
     "gulp-run-sequence": "0.3.2",
@@ -24,7 +24,8 @@
     "phantomjs": "^1.9.17",
     "typescript": "1.8.x",
     "uglify-js": "^3.3.8",
-    "underscore": "^1.8.3"
+    "underscore": "^1.8.3",
+    "handlebars": "^4.0.11"
   },
   "scripts": {
     "test": "gulp test"
