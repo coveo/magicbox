@@ -1,6 +1,5 @@
 /// <reference path="MagicBox.ts"/>
-module Coveo.MagicBox {
-
+namespace Coveo.MagicBox {
   export class InputManager {
     private input: HTMLInputElement;
     private clear: HTMLElement;
@@ -15,8 +14,8 @@ module Coveo.MagicBox {
     private justPressedTab: boolean = false;
 
     /**
-    * Binding event
-    */
+     * Binding event
+     */
     public onblur: () => void;
     public onfocus: () => void;
     public onkeyup: (key: number) => boolean;
@@ -24,21 +23,25 @@ module Coveo.MagicBox {
     public onchangecursor: () => void;
     public ontabpress: () => void;
 
-    constructor(private element: HTMLElement, private onchange: (text: string, wordCompletion: boolean) => void, private magicBox: Instance) {
-      this.underlay = document.createElement('div');
+    constructor(
+      private element: HTMLElement,
+      private onchange: (text: string, wordCompletion: boolean) => void,
+      private magicBox: Instance
+    ) {
+      this.underlay = document.createElement("div");
       this.underlay.className = "magic-box-underlay";
 
-      this.highlightContainer = document.createElement('span');
+      this.highlightContainer = document.createElement("span");
       this.highlightContainer.className = "magic-box-highlight-container";
       this.underlay.appendChild(this.highlightContainer);
 
-      this.ghostTextContainer = document.createElement('span');
+      this.ghostTextContainer = document.createElement("span");
       this.ghostTextContainer.className = "magic-box-ghost-text";
       this.underlay.appendChild(this.ghostTextContainer);
 
-      this.input = $$(element).find('input');
+      this.input = $$(element).find("input");
       if (!this.input) {
-        this.input = document.createElement('input');
+        this.input = document.createElement("input");
         element.appendChild(this.underlay);
         element.appendChild(this.input);
       } else {
@@ -46,15 +49,15 @@ module Coveo.MagicBox {
       }
 
       this.input.spellcheck = false;
-      this.input.setAttribute('form', 'coveo-dummy-form');
-      this.input.setAttribute('autocomplete', 'off');
+      this.input.setAttribute("form", "coveo-dummy-form");
+      this.input.setAttribute("autocomplete", "off");
 
       this.setupHandler();
     }
 
     /**
-    * Update the input with the result value
-    */
+     * Update the input with the result value
+     */
     private updateInput() {
       if (this.input.value != this.result.input) {
         this.input.value = this.result.input;
@@ -65,53 +68,58 @@ module Coveo.MagicBox {
     }
 
     /**
-    * Update the highlight with the result value
-    */
+     * Update the highlight with the result value
+     */
     private updateHighlight() {
-      this.highlightContainer.innerHTML = '';
+      $$(this.highlightContainer).empty();
       this.highlightContainer.appendChild(this.result.toHtmlElement());
     }
 
     /**
-    * Update the ghostText with the wordCompletion
-    */
+     * Update the ghostText with the wordCompletion
+     */
     private updateWordCompletion() {
-      this.ghostTextContainer.innerHTML = '';
+      $$(this.ghostTextContainer).empty();
+      this.ghostTextContainer.innerHTML = "";
       if (this.wordCompletion != null) {
-        this.ghostTextContainer.appendChild(document.createTextNode(this.wordCompletion.substr(this.result.input.length)))
+        this.ghostTextContainer.appendChild(
+          document.createTextNode(
+            this.wordCompletion.substr(this.result.input.length)
+          )
+        );
       }
     }
 
     /**
-    * Update the scroll of the underlay this allowed the highlight to match the text
-    */
+     * Update the scroll of the underlay this allowed the highlight to match the text
+     */
     private updateScrollDefer: number;
     private updateScroll(defer = true) {
       var callback = () => {
         // this is the cheapest call we can do before update scroll
         if (this.underlay.clientWidth < this.underlay.scrollWidth) {
-          this.underlay.style.visibility = 'hidden';
+          this.underlay.style.visibility = "hidden";
           this.underlay.scrollLeft = this.input.scrollLeft;
           this.underlay.scrollTop = this.input.scrollTop;
-          this.underlay.style.visibility = 'visible';
+          this.underlay.style.visibility = "visible";
         }
         this.updateScrollDefer = null;
         // one day we will have to remove this
         if (this.hasFocus) {
           this.updateScroll();
         }
-      }
+      };
       // sometime we want it to be updated as soon as posible to have no flickering
       if (!defer) {
         callback();
       } else if (this.updateScrollDefer == null) {
-        this.updateScrollDefer = requestAnimationFrame(callback)
+        this.updateScrollDefer = requestAnimationFrame(callback);
       }
     }
 
     /**
-    * Set the result and update visual if needed
-    */
+     * Set the result and update visual if needed
+     */
     public setResult(result: Result, wordCompletion?: string) {
       this.result = result;
 
@@ -120,7 +128,11 @@ module Coveo.MagicBox {
       this.updateHighlight();
 
       // reuse last wordCompletion for a better visual
-      if (_.isUndefined(wordCompletion) && this.wordCompletion != null && this.wordCompletion.indexOf(this.result.input) == 0) {
+      if (
+        _.isUndefined(wordCompletion) &&
+        this.wordCompletion != null &&
+        this.wordCompletion.indexOf(this.result.input) == 0
+      ) {
         this.updateWordCompletion();
       } else {
         this.setWordCompletion(wordCompletion);
@@ -130,10 +142,14 @@ module Coveo.MagicBox {
     }
 
     /**
-    * Set the word completion. will be ignore if the word completion do not start with the result input
-    */
+     * Set the word completion. will be ignore if the word completion do not start with the result input
+     */
     public setWordCompletion(wordCompletion: string) {
-      if (wordCompletion != null && wordCompletion.toLowerCase().indexOf(this.result.input.toLowerCase()) != 0) {
+      if (
+        wordCompletion != null &&
+        wordCompletion.toLowerCase().indexOf(this.result.input.toLowerCase()) !=
+          0
+      ) {
         wordCompletion = null;
       }
       this.wordCompletion = wordCompletion;
@@ -142,8 +158,8 @@ module Coveo.MagicBox {
     }
 
     /**
-    * Set cursor position
-    */
+     * Set cursor position
+     */
     public setCursor(index: number) {
       this.input.focus();
       if ((<any>this.input).createTextRange) {
@@ -169,33 +185,33 @@ module Coveo.MagicBox {
           }
         }, 300);
         this.updateScroll();
-      }
+      };
       this.input.onfocus = () => {
         if (!this.hasFocus) {
           this.hasFocus = true;
           this.updateScroll();
           this.onfocus && this.onfocus();
         }
-      }
-      this.input.onkeydown = (e) => {
+      };
+      this.input.onkeydown = e => {
         this.keydown(e);
-      }
-      this.input.onkeyup = (e) => {
+      };
+      this.input.onkeyup = e => {
         this.keyup(e);
-      }
+      };
       this.input.onclick = () => {
         this.onchangecursor();
-      }
+      };
       this.input.oncut = () => {
         setTimeout(() => {
           this.onInputChange();
         });
-      }
+      };
       this.input.onpaste = () => {
         setTimeout(() => {
           this.onInputChange();
         });
-      }
+      };
     }
 
     public focus() {
