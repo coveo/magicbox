@@ -10,7 +10,7 @@ module Coveo.MagicBox.Grammars {
       NotDoubleQuote: /[^"]*/,
       SingleQuoted: "'[NotSingleQuote]'",
       NotSingleQuote: /[^']*/,
-      Number: /[0-9]+/,
+      Number: /-?(0|[1-9]\d*)(\.\d+)?/,
       Word: (input: string, end: boolean, expression: Expression) => {
         var regex = new RegExp('[^' + notWordStart.replace(/(.)/g, '\\$1') + '][^' + notInWord.replace(/(.)/g, '\\$1') + ']*');
         var groups = input.match(regex);
