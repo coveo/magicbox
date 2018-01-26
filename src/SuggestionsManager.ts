@@ -18,6 +18,7 @@ namespace Coveo.MagicBox {
   export class SuggestionsManager {
     private pendingSuggestion: Promise<Suggestion[]>;
     private options: SuggestionsManagerOptions;
+    private count = 1;
     public hasSuggestions: boolean;
 
     constructor(
@@ -156,60 +157,60 @@ namespace Coveo.MagicBox {
       var stillNeedToResolve = true;
       // clean empty / null values in the array of suggestions
       suggestions = _.compact(suggestions);
-      var promise = (this.pendingSuggestion = new Promise<
-        Suggestion
-      >((resolve, reject) => {
-        // Concat all promises results together in one flat array.
-        // If one promise take too long to resolve, simply skip it
-        _.each(suggestions, (suggestion: Promise<Suggestion[]>) => {
-          var shouldRejectPart = false;
-          setTimeout(function() {
-            shouldRejectPart = true;
-            stillNeedToResolve = false;
-          }, this.options.timeout);
-          suggestion.then((item: Suggestion[]) => {
-            if (!shouldRejectPart && item) {
-              results = results.concat(item);
-            }
+      var promise = (this.pendingSuggestion = new Promise<Suggestion>(
+        (resolve, reject) => {
+          // Concat all promises results together in one flat array.
+          // If one promise take too long to resolve, simply skip it
+          _.each(suggestions, (suggestion: Promise<Suggestion[]>) => {
+            var shouldRejectPart = false;
+            setTimeout(function() {
+              shouldRejectPart = true;
+              stillNeedToResolve = false;
+            }, this.options.timeout);
+            suggestion.then((item: Suggestion[]) => {
+              if (!shouldRejectPart && item) {
+                results = results.concat(item);
+              }
+            });
           });
-        });
 
-        // Resolve the promise when one of those conditions is met first :
-        // - All suggestions resolved
-        // - Timeout is reached before all promises have processed -> resolve with what we have so far
-        // - No suggestions given (length 0 or undefined)
-        var onResolve = () => {
-          if (stillNeedToResolve) {
-            if (timeout) {
-              clearTimeout(timeout);
+          // Resolve the promise when one of those conditions is met first :
+          // - All suggestions resolved
+          // - Timeout is reached before all promises have processed -> resolve with what we have so far
+          // - No suggestions given (length 0 or undefined)
+          var onResolve = () => {
+            if (stillNeedToResolve) {
+              if (timeout) {
+                clearTimeout(timeout);
+              }
+              if (results.length == 0) {
+                resolve([]);
+              } else if (
+                promise == this.pendingSuggestion ||
+                this.pendingSuggestion == null
+              ) {
+                resolve(results.sort((a, b) => b.index - a.index));
+              } else {
+                reject("new request queued");
+              }
             }
-            if (results.length == 0) {
-              resolve([]);
-            } else if (
-              promise == this.pendingSuggestion ||
-              this.pendingSuggestion == null
-            ) {
-              resolve(results.sort((a, b) => b.index - a.index));
-            } else {
-              reject("new request queued");
-            }
+            stillNeedToResolve = false;
+          };
+
+          if (suggestions.length == 0) {
+            onResolve();
           }
-          stillNeedToResolve = false;
-        };
+          if (suggestions == undefined) {
+            onResolve();
+          }
 
-        if (suggestions.length == 0) {
-          onResolve();
+          timeout = setTimeout(function() {
+            onResolve();
+          }, this.options.timeout);
+
+          Promise.all(suggestions).then(() => onResolve());
         }
-        if (suggestions == undefined) {
-          onResolve();
-        }
-
-        timeout = setTimeout(function() {
-          onResolve();
-        }, this.options.timeout);
-
-        Promise.all(suggestions).then(() => onResolve());
-      }));
+      ));
 
       promise
         .then((suggestions: Suggestion[]) => {
@@ -225,7 +226,7 @@ namespace Coveo.MagicBox {
     }
 
     public updateSuggestions(suggestions: Suggestion[]) {
-      this.element.innerHTML = "";
+      $$(this.element).empty();
       this.element.className = "magic-box-suggestions";
       _.each(suggestions, (suggestion: Suggestion) => {
         var dom = suggestion.dom;
