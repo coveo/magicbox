@@ -19,15 +19,17 @@
     "gulp-typescript": "^2.8.2",
     "gulp-uglify": "^3.0.0",
     "gulp-util": "^3.0.6",
+    "handlebars": "^4.0.11",
+    "hoek": "^4.2.1",
     "jasmine-core": "^2.3.4",
     "merge2": "^0.3.6",
     "phantomjs": "^1.9.17",
     "typescript": "1.8.x",
     "uglify-js": "^3.3.8",
-    "underscore": "^1.8.3",
-    "handlebars": "^4.0.11"
+    "underscore": "^1.8.3"
   },
   "scripts": {
     "test": "gulp test"
-  }
+  },
+  "dependencies": {}
 }
